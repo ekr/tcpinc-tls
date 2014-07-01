@@ -145,13 +145,18 @@ now corrupted.
 
 The basic operational mode defined by TCP-TLS protects only the
 application layer content, but not the TCP segment metadata.
-Thus, it provides automatic security for the content, but not
-protection against DoS-style attacks. For instance, attackers
-will be able to inject RST packets, bogus application segments,
-etc., regardless of whether TLS authentication is used.
-Because the application data is TLS protected, this will
-not result in the application receiving bogus data, but it
-will constitute a DoS on the connection.
+Upon receiving a packet, implementations MUST first check the
+TCP checksum and discard corrupt packets without presenting
+them to TLS. If the TCP checksum passes but TLS integrity
+fails, the connection MUST be torn down.
+
+Thus, TCP-TLS provides automatic security for the content, but not
+protection against DoS-style attacks.  For instance, attackers will be
+able to inject RST packets, bogus application segments, etc.,
+regardless of whether TLS authentication is used.  Because the
+application data is TLS protected, this will not result in the
+application receiving bogus data, but it will constitute a DoS on the
+connection.
 
 This attack can be countered by using TCP-TLS in combination
 with TCP-AO {{RFC5925}}, as follows:
@@ -164,7 +169,8 @@ with TCP-AO {{RFC5925}}, as follows:
    material of appropriate length using exporter label TBD.
 
 1. Further packets are protected using TCP-AO with the generated
-   keys. 
+   keys.
+
 The Finished messages MUST NOT be protected with AO. The first
 application data afterwards MUST be protected with AO. Note that
 because of retransmission, non-AO packets may be received after
@@ -224,5 +230,6 @@ even when TCP-AO is used, all that is being provided is continuity
 of authentication from the initial handshake. If some sort of
 external authentication mechanism was provided or certificates
 are used, then you might get some protection against active attack.
+
 
 --- back
