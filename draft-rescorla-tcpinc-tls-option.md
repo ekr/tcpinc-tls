@@ -28,6 +28,7 @@ normative:
   I-D.ietf-tls-applayerprotoneg:
   
 informative:
+  I-D.bittau-tcp-crypt:
 
 --- abstract
 
@@ -58,7 +59,6 @@ to the application layer and thus do not meet the goals of TCPINC. This
 document describes a TCP option which allows a pair of communicating TCP
 endpoints to negotiate TLS use automatically without modifying the application
 layer protocols, thus allowing for transparent deployment.
-
 
 # Overview
 
@@ -176,6 +176,25 @@ what we want here?]]
 
 [[TODO: verify that the state machine matches up here.]]
 
+
+# Implementation Options
+
+There are two primary implementation options for TCP-TLS:
+
+* Implement all of TCP-TLS in the operating system kernel.
+
+* Implement just the TCP-TLS negotiation option in the
+  operating system kernel with an interface to tell the
+  application that TCP-TLS has been negotiated and therefore
+  that the application must negotiate TLS.
+
+The former option obviously achieves easier deployment for
+applications, which don't have to do anything, but is more
+effort for kernel developers and requires a wider interface
+to the kernel to configure the TLS stack. The latter option
+is inherently more flexible but does not provide as immediate
+transparent deployment. It is also possible for systems to
+offer both options.
 
 # NAT/Firewall considerations
 
