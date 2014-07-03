@@ -1,7 +1,7 @@
 ---
 title: TCP Use TLS Option
 abbrev: TCP/TLS Opt
-docname: draft-rescorla-tcpinc-tls-option
+docname: draft-rescorla-tcpinc-tls-option-latest
 date: 2014
 category: std
 
@@ -202,6 +202,13 @@ is inherently more flexible but does not provide as immediate
 transparent deployment. It is also possible for systems to
 offer both options.
 
+# TLS Profile
+
+Implementations of this specification MUST at minimum support TLS 1.2
+{{RFC5246}} and MUST support cipher suite XXX. Implementations MUST
+NOT negotiate versions of TLS prior to TLS 1.2.
+[[OPEN ISSUE: If TLS 1.3 is ready, we may want to require that.]]
+
 # NAT/Firewall considerations
 
 If use of TLS is negotiated, the data sent over TCP simply is TLS data
@@ -212,7 +219,6 @@ blocks TLS on arbitrary (non-443) ports but *also* passes unknown TCP
 options. Although no doubt such devices do exist, because this is a
 common scenario, a client machine should be able to probe to determine
 if it is behind such a device relatively readily.
-
 
 # IANA Considerations
 
