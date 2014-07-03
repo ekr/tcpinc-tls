@@ -40,6 +40,11 @@ be negotiated on a given TCP connection.
 
 # Introduction
 
+RFC EDITOR: PLEASE REMOVE THE FOLLOWING PARAGRAPH The source for this
+draft is maintained in GitHub.  Suggested changes should be submitted
+as pull requests at https://github.com/ekr/tcpinc-tls.
+Instructions are on that page as well.
+
 The TCPINC WG is chartered to define protocols to provide ubiquitous,
 transparent security for TCP connections.
 
