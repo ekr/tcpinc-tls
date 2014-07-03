@@ -122,7 +122,7 @@ TLS client and the lowest value being the TLS server.
   randomly generate its tiebreaker value.
 
 If both sides generate the same tiebreaker value, then TCP-TLS MUST NOT
-be used.
+be used (this has a vanishing probability of happening by accident.)
 
 If an endpoint sends the TCP-TLS option and receives it from the
 other side, it shall immediately negotiate TLS, taking on the role
@@ -212,6 +212,8 @@ offer both options.
 Implementations of this specification MUST at minimum support TLS 1.2
 {{RFC5246}} and MUST support cipher suite XXX. Implementations MUST
 NOT negotiate versions of TLS prior to TLS 1.2.
+[[OPEN ISSUE: What cipher suites? Presumably we require one
+authenticated and one anonymous cipher suite, all with GCM.]]
 [[OPEN ISSUE: If TLS 1.3 is ready, we may want to require that.]]
 
 # NAT/Firewall considerations
