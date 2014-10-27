@@ -53,7 +53,7 @@ sed_i := sed -i
 endif
 
 %.html: %.xml
-	$(xml2rfc) $< $@
+	$(xml2rfc) --html $< $@
 	$(sed_i) -f lib/addstyle.sed $@
 
 ### Below this deals with updating gh-pages
