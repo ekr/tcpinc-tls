@@ -26,8 +26,10 @@ normative:
   RFC5925:
   RFC5705:
   I-D.ietf-tls-applayerprotoneg:
+  I-D.ietf-tls-session-hash:
   
 informative:
+  RFC5929:
   I-D.bittau-tcp-crypt:
 
 --- abstract
@@ -216,6 +218,13 @@ NOT negotiate versions of TLS prior to TLS 1.2.
 authenticated and one anonymous cipher suite, all with GCM.]]
 [[OPEN ISSUE: If TLS 1.3 is ready, we may want to require that.]]
 
+# Channel Bindings
+
+This specification is compatible with external authentication via
+TLS Channel Bindings {{RFC5929}}. If Channel Bindings are to be used,
+the TLS Extended Master Secret Extension {{I-D.ietf-tls-session-hash}}
+MUST be used.
+
 # NAT/Firewall considerations
 
 If use of TLS is negotiated, the data sent over TCP simply is TLS data
@@ -238,11 +247,26 @@ to indicate the use of TCP-TLS with TCP-AO.
 # Security Considerations
 
 The mechanisms in this document are inherently vulnerable to active
-attack because an attacker can remove the TCP-TLS option. Thus,
-even when TCP-AO is used, all that is being provided is continuity
-of authentication from the initial handshake. If some sort of
-external authentication mechanism was provided or certificates
-are used, then you might get some protection against active attack.
+attack because an attacker can remove the TCP-TLS option, thus
+downgrading you to ordinary TCP. Even when TCP-AO is used, all that is
+being provided is continuity of authentication from the initial
+handshake. If some sort of external authentication mechanism was
+provided or certificates are used, then you might get some protection
+against active attack.
+
+Once the TCP-TLS option has been negotiated, then the connection is
+resistant to active data injection attacks. If TCP-AO is not used,
+then injected packets appear as bogus data at the TLS layer and
+will result in MAC errors followed by a fatal alert. The result
+is that while data integrity is provided, the connection is not
+resistant to DoS attacks intended to terminate it.
+
+If TCP-AO is used, then any bogus packets injected by an attacker
+will be rejected by the TCP-AO integrity check and therefore will
+never reach the TLS layer. Thus, in this case, the connection is
+also resistant to DoS attacks, provided that endpoints require
+integrity protection for RST packets. If endpoints accept
+unauthenticated RST, then no DoS protection is provided.
 
 
 --- back
