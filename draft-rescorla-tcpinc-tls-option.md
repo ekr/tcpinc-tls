@@ -102,33 +102,44 @@ TLS data in compliance with {{RFC5246}.
 
 # Extension Definition
 
-The TCP-TLS option is very simple.
+The TCP-TLS option is very simple. For the normal case where
+each side knows who is the passive and who is the active opener,
+the option is empty. I.e.
+
+
+            +------------+------------+
+            |  Kind=XX   | Length = 2 |
+            +------------+------------+
+
+In this case, the active opener MUST take on the role of TLS Client.
+
+In the abnormal case of simultaneous open, the option includes
+a tiebreaker value.
 
             +------------+------------+------------+------------+
-            |  Kind=XX   |   Length   |          Reserved       |  
+            |  Kind=XX   | Length = 8 |        Tiebreaker       |
             +------------+------------+------------+------------+
-            |                    Tiebreaker                     |
+            |                   Tiebreaker                      |
             +---------------------------------------------------+
 
-The reserved field MUST be all 0s and is present for alignment.
-The tiebreaker field is a 64-bit value which is used to
-determine the TLS roles, with the highest value being the
-TLS client and the lowest value being the TLS server.
+The tiebreaker field is a 48-bit value which is used to determine the
+TLS roles, with the highest value being the TLS client and the lowest
+value being the TLS server. Applications MUST generate the tiebreaker
+randomly. If both sides generate the same tiebreaker value, then
+TCP-TLS MUST NOT be used (this has a vanishing probability of
+happening by accident.)
 
-* In client/server applications, the active opener MUST set its tiebreaker
-  value to all 1s (the maximum value) and the passive opener MUST set its
-  tiebreaker to all 0s (the minimum value), thus ensuring that
-  the TLS roles line up with the traditional TLS over TCP roles.
+The default mode of operation MUST be the ordinary client/server
+mode and implementations MUST only use the simultaneous open mode
+if instructed by an application. If an implementation in simultaneous
+open mode receives an option without a tiebreaker, it MUST treat that
+tiebreaker as 0. If simultaneous open mode is not in use, and
+implementations detect a simultaneous open, then they
+MUST NOT try to negotiate TLS, regardless of the presence of this option.
 
-* In applications which may use simultaneous opens, each side SHOULD
-  randomly generate its tiebreaker value.
-
-If both sides generate the same tiebreaker value, then TCP-TLS MUST NOT
-be used (this has a vanishing probability of happening by accident.)
-
-If an endpoint sends the TCP-TLS option and receives it from the
-other side, it shall immediately negotiate TLS, taking on the role
-indicated by the tiebreaker value.
+If an endpoint sends the TCP-TLS option and correctly
+receives it from the other side it SHALL immediately negotiate TLS, taking on the role
+described above.
 
 Once the TLS handshake has completed, all application data SHALL be
 sent over that negotiated TLS channel. Application data MUST NOT
@@ -223,7 +234,7 @@ authenticated and one anonymous cipher suite, all with GCM.]]
 This specification is compatible with external authentication via
 TLS Channel Bindings {{RFC5929}}. If Channel Bindings are to be used,
 the TLS Extended Master Secret Extension {{I-D.ietf-tls-session-hash}}
-MUST be used.
+
 
 # NAT/Firewall considerations
 
