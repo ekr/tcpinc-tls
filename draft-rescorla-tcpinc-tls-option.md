@@ -2,7 +2,7 @@
 title: TCP Use TLS Option
 abbrev: TCP/TLS Opt
 docname: draft-rescorla-tcpinc-tls-option-latest
-date: 2014
+date: 2015
 category: std
 
 ipr: trust200902
@@ -224,10 +224,16 @@ offer both options.
 
 Implementations of this specification MUST at minimum support TLS 1.2
 {{RFC5246}} and MUST support cipher suite XXX. Implementations MUST
-NOT negotiate versions of TLS prior to TLS 1.2.
+NOT negotiate versions of TLS prior to TLS 1.2. Implementations MUST
+NOT negotiate non-AEAD cipher suites and MUST use only PFS cipher
+suites with a key of at least 2048 bits (finite field) or 256 bites (elliptic
+curve).
+
 [[OPEN ISSUE: What cipher suites? Presumably we require one
 authenticated and one anonymous cipher suite, all with GCM.]]
 [[OPEN ISSUE: If TLS 1.3 is ready, we may want to require that.]]
+
+
 
 # Channel Bindings
 
