@@ -27,10 +27,12 @@ normative:
   RFC5705:
   I-D.ietf-tls-applayerprotoneg:
   I-D.ietf-tls-session-hash:
+  I-D.ietf-tls-tls13:
   
 informative:
   RFC5929:
   I-D.bittau-tcp-crypt:
+  I-D.ietf-tls-falsestart:
 
 --- abstract
 
@@ -139,7 +141,61 @@ MUST NOT try to negotiate TLS, regardless of the presence of this option.
 
 If an endpoint sends the TCP-TLS option and correctly
 receives it from the other side it SHALL immediately negotiate TLS, taking on the role
-described above.
+described above. Figure 3 shows a detailed message flow for TLS 1.2
+using an anonymous cipher suite such as DH_anon (this is the simplest
+practice for the case where no authentication is desired or where
+a channel binding {{channel-bindings}} is to be used). The point
+at which each side is able to write is marked with @@@ (assuming
+False Start {{I-D.ietf-tls-falsestart}}).
+
+~~~
+             SYN + TCP-TLS ->
+                                         <- SYN/ACK + TCP/TLS
+             ACK ->
+             ClientHello ->
+                                                  ServerHello
+                                           ServerKeyExchange*
+                                              ServerHelloDone
+             ClientKeyExchange
+             [ChangeCipherSpec]
+             Finished            ->
+             @@@
+   
+                                           [ChangeCipherSpec]
+                                                  <- Finished
+                                                          @@@
+
+             <--------- Application Data over TLS ---------->
+             
+                Figure 3: Complete protocol flow for TLS 1.2
+~~~
+
+
+Figure 4 shows the same scenario for TLS 1.3 
+{{I-D.ietf-tls-tls13}} in the "1-RTT mode"
+which is the basic mode for two endpoints which have never
+communicated before:
+
+~~~
+             SYN + TCP-TLS ->
+                                         <- SYN/ACK + TCP/TLS
+             ACK ->
+             ClientHello + ClientKeyShare ->
+                                                  ServerHello
+                                              ServerKeyShare*
+                                                     Finished
+                                                          @@@
+             Finished            ->
+             @@@
+  
+             <--------- Application Data over TLS ---------->
+             
+                Figure 4: Complete protocol flow for TLS 1.2
+~~~
+
+Note that in future communications, the client can start sending
+data on its first flight (0-RTT mode) if the server provides
+a ServerConfiguration.
 
 Once the TLS handshake has completed, all application data SHALL be
 sent over that negotiated TLS channel. Application data MUST NOT
@@ -223,23 +279,22 @@ offer both options.
 # TLS Profile
 
 Implementations of this specification MUST at minimum support TLS 1.2
-{{RFC5246}} and MUST support cipher suite XXX. Implementations MUST
-NOT negotiate versions of TLS prior to TLS 1.2. Implementations MUST
+{{RFC5246}} and MUST support the following cipher suites [TBD]
+and MUST NOT negotiate versions of TLS prior to TLS 1.2. Implementations MUST
 NOT negotiate non-AEAD cipher suites and MUST use only PFS cipher
-suites with a key of at least 2048 bits (finite field) or 256 bites (elliptic
-curve).
+suites with a key of at least 2048 bits (finite field) or 256 bites
+(elliptic curve). Implementations MUST implement and require the TLS
+Extended Master Secret Extension {{I-D.ietf-tls-session-hash}}.
 
 [[OPEN ISSUE: What cipher suites? Presumably we require one
 authenticated and one anonymous cipher suite, all with GCM.]]
 [[OPEN ISSUE: If TLS 1.3 is ready, we may want to require that.]]
 
 
-
 # Channel Bindings
 
 This specification is compatible with external authentication via
-TLS Channel Bindings {{RFC5929}}. If Channel Bindings are to be used,
-the TLS Extended Master Secret Extension {{I-D.ietf-tls-session-hash}}
+TLS Channel Bindings {{RFC5929}}. 
 
 
 # NAT/Firewall considerations
