@@ -28,16 +28,20 @@ normative:
   I-D.ietf-tls-applayerprotoneg:
   I-D.ietf-tls-session-hash:
   I-D.ietf-tls-tls13:
+  I-D.bittau-tcpinc-tcpeno:
+  I-D.ietf-tls-chacha20-poly1305:
+  I-D.irtf-cfrg-curves:
   
 informative:
   RFC5929:
+  RFC6919:
   I-D.bittau-tcp-crypt:
   I-D.ietf-tls-falsestart:
 
 --- abstract
 
-This document defines a TCP option (TCP-TLS) to indicate that TLS should
-be negotiated on a given TCP connection.
+This document defines the use of TLS {{RFC5246}} with the TCP-ENO
+option {{I-D.bittau-tcpinc-tcpeno}}.
 
 
 --- middle
@@ -50,38 +54,25 @@ as pull requests at https://github.com/ekr/tcpinc-tls.
 Instructions are on that page as well.
 
 The TCPINC WG is chartered to define protocols to provide ubiquitous,
-transparent security for TCP connections.
-
-While TLS {{RFC5246}} is by far the most popular mechanism for securing
-TCP data, adding it to a given protocol requires some sort of coordination;
-if a client just tries to initiate TLS with a non-TLS server, the
-server will most likely reject the protocol messages because they
-do not conform to its expectations for the application layer protocol.
-This coordination can take a number of forms, including:
-
-* An external signal in the URL that the client should do TLS (e.g., "https:")
-* Using a separate port for the secure and non-secure versions of the protocol.
-* An extension to the application protocol to negotiate use or non-use of TLS ("STARTTLS")
-
-While mechanisms of this type are in wide use, they all require modifications
-to the application layer and thus do not meet the goals of TCPINC. This
-document describes a TCP option which allows a pair of communicating TCP
-endpoints to negotiate TLS use automatically without modifying the application
-layer protocols, thus allowing for transparent deployment.
+transparent security for TCP connections. The WG has specified 
+The TCP Encryption Negotiation Option (TCP-ENO) {{I-D.bittau-tcpinc-tcpeno}}
+which allows for negotiation of encryption at the TCP layer. This
+document describes a binding of TLS {{RFC5246}} to TCP-ENO as
+what ENO calls an "encryption spec", thus allowing TCP-ENO
+to negotiate TLS.
 
 # Overview
 
-The basic idea behind the TCP-TLS option is simple. The SYN and SYN/ACK
-messages carry TCP options indicating the willingness to do TLS and some
-basic information about the expected TLS modes. If both sides want to do
-TLS and have compatible modes, then the application data is automatically
-TLS protected prior to being sent over TCP. Otherwise, the application
-data is sent as usual.
+The basic idea behind this draft is simple. The SYN and SYN/ACK
+messages carry the TCP-ENO options indicating the willingness to do TLS.
+If both sides want to do TLS, then a TLS handshake is started and once
+that completes, the data is TLS protected prior to being sent over TCP.
+Otherwise, the application data is sent as usual.
 
              Client                                    Server
       
-             SYN + TCP-TLS ->
-                                         <- SYN/ACK + TCP/TLS
+             SYN + TCP-ENO [TLS]->
+                                   <- SYN/ACK + TCP-ENO [ENO]
              ACK ->
              <---------------- TLS Handshake --------------->
              <--------- Application Data over TLS ---------->
@@ -91,7 +82,7 @@ data is sent as usual.
       
              Client                                    Server
       
-             SYN + TCP-TLS ->
+             SYN + TCP-ENO [TLS] ->
                                                    <- SYN/ACK
              ACK ->
              <--------- Application Data over TLS ---------->
@@ -99,45 +90,173 @@ data is sent as usual.
                        Figure 2: Fall back to TCP
 
 If use of TLS is negotiated, the data sent over TCP simply is
-TLS data in compliance with {{RFC5246}.
+TLS data in compliance with {{RFC5246}}.
+
+
+
+# TLS Profile
+
+The TLS Profile defined in this document is intended to be a
+compromise between two separate use cases. For the straight TCPINC use
+case of ubiquitous transport encryption, we desire that
+implementations solely implement TLS 1.3 {{I-D.ietf-tls-tls13}} or
+greater. However, we also want to allow the use of TCP-ENO as a signal
+for applications to do out-of-band negotiation of TLS, and those
+applications are likely to already have support for TLS 1.2
+{{RFC5246}}. In order to accomodate both cases, we specify a wire
+encoding that allows for negotiation of multiple TLS versions
+{{extension-definition}} but encourage implementations to
+implement only TLS 1.3. Implementations which also implement TLS 1.2
+MUST implement the profile described in {{tls12-profile}}
+
+
+## TLS 1.3 Profile {#tls13-profile}
+
+TLS 1.3 is the preferred version of TLS for this specification. In
+order to facilitate implementation, this section provides a
+non-normative description of the parts of TLS 1.3 which are relevant
+to TCPINC. {{I-D.ietf-tls-tls13}} remains the normative reference for
+TLS 1.3. In order to match TLS terminology, we use the term "client"
+to indicate the TCP-ENO "A" role (See {{I-D.bittau-tcpinc-tcpeno}};
+Section 3.1) and "server" to indicate the "B" role.
+
+### Handshake Modes
+
+TLS 1.3 as used in TCPINC supports two handshake modes, both based
+on (EC)DHE key exchange.
+
+* A 1-RTT mode which is used when the client has no information
+  about the server's keying material (see {{tls-full}})
+
+* A 0-RTT mode which is used when the client and server have
+  connected previous and which allows the client to send data
+  on the first flight (see {{tls-0-rtt}}
+
+Full TLS 1.3 includes support for additional modes based on pre-shared
+keys, but TCPINC implementations MAY opt to omit them. Implementations
+MUST implement the 1-RTT mode and SHOULD implement the 0-RTT mode.
+
+
+~~~
+     Client                                               Server
+
+     ClientHello
+       + ClientKeyShare        -------->
+                                                     ServerHello
+                                                 ServerKeyShare*
+                                           {EncryptedExtensions}
+                                          {ServerConfiguration*}
+                                                  {Certificate*}
+                                            {CertificateVerify*}
+                               <--------              {Finished}
+     {Finished}                -------->
+     [Application Data]        <------->      [Application Data]
+
+            *  Indicates optional or situation-dependent
+               messages that are not always sent.
+
+            {} Indicates messages protected using keys
+               derived from the ephemeral secret.
+
+            [] Indicates messages protected using keys
+               derived from the master secret.
+~~~
+{: #tls-full title="Message flow for full TLS Handshake"}
+
+Note: Although these diagrams indicate a message called
+"Certificate", this message MAY either contain a bare public key
+or an X.509 certificate (this is intended to support the
+out-of-band use case indicated above). Implementations
+MUST support bare public keys and MAY support X.509
+certificates.
+
+~~~
+       Client                                               Server
+
+       ClientHello
+         + ClientKeyShare
+         + EarlyDataIndication
+       (EncryptedExtensions)
+       (Application Data)        -------->
+                                                       ServerHello
+                                             + EarlyDataIndication
+                                                    ServerKeyShare
+                                             {EncryptedExtensions}
+                                            {ServerConfiguration*}
+                                                    {Certificate*}
+                                             {CertificateRequest*}
+                                              {CertificateVerify*}
+                                 <--------              {Finished}
+       {Finished}                -------->
+
+       [Application Data]        <------->      [Application Data]
+
+            () Indicates messages protected using keys
+               derived from the static secret.
+~~~
+{: #tls-0-rtt title="Message flow for a zero round trip handshake"}
+
+
+
+### Basic Handshake
+
+In order to initiate the TLS handshake, the client sends a "ClientHello"
+message
+
+
+
+
+
+
+
+## TLS 1.2 Profile {#tls12-profile}
+
+Implementations MUST implement and require the TLS Extended Master
+Secret Extension {{I-D.ietf-tls-session-hash}} and MUST NOT negotiate
+versions of TLS prior to TLS 1.2. Implementations MUST NOT negotiate
+non-AEAD cipher suites and MUST use only PFS cipher suites with a key
+of at least 2048 bits (finite field) or 256 bites (elliptic curve).
+
+
+## Cryptographic Algorithms 
+
+Implementations of this specification MUST implement the following cipher
+suites:
+
+~~~~
+    TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 
+~~~~
+
+These cipher suites MUST support both digital signatures and key exchange
+with secp256r1 (NIST P-256) and SHOULD support key agrement with X25519
+{{I-D.irtf-cfrg-curves}}.
+
+Implementations of this specification SHOULD implement the following cipher suites:
+
+~~~~
+    TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+    TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+    TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+~~~~
+
+
+
+
+
 
 
 # Extension Definition
 
-The TCP-TLS option is very simple. For the normal case where
-each side knows who is the passive and who is the active opener,
-the option is empty. I.e.
+[TODO: How to jointly support TLS 1.2 and TLS 1.3]
+
+                          
 
 
-            +------------+------------+
-            |  Kind=XX   | Length = 2 |
-            +------------+------------+
 
-In this case, the active opener MUST take on the role of TLS Client.
 
-In the abnormal case of simultaneous open, the option includes
-a tiebreaker value.
 
-            +------------+------------+------------+------------+
-            |  Kind=XX   | Length = 8 |        Tiebreaker       |
-            +------------+------------+------------+------------+
-            |                   Tiebreaker                      |
-            +---------------------------------------------------+
-
-The tiebreaker field is a 48-bit value which is used to determine the
-TLS roles, with the highest value being the TLS client and the lowest
-value being the TLS server. Applications MUST generate the tiebreaker
-randomly. If both sides generate the same tiebreaker value, then
-TCP-TLS MUST NOT be used (this has a vanishing probability of
-happening by accident.)
-
-The default mode of operation MUST be the ordinary client/server
-mode and implementations MUST only use the simultaneous open mode
-if instructed by an application. If an implementation in simultaneous
-open mode receives an option without a tiebreaker, it MUST treat that
-tiebreaker as 0. If simultaneous open mode is not in use, and
-implementations detect a simultaneous open, then they
-MUST NOT try to negotiate TLS, regardless of the presence of this option.
 
 If an endpoint sends the TCP-TLS option and correctly
 receives it from the other side it SHALL immediately negotiate TLS, taking on the role
