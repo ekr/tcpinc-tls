@@ -25,6 +25,7 @@ normative:
   RFC5246:
   RFC5925:
   RFC5705:
+  RFC7250:
   I-D.ietf-tls-applayerprotoneg:
   I-D.ietf-tls-session-hash:
   I-D.ietf-tls-tls13:
@@ -116,7 +117,9 @@ TLS 1.3 is the preferred version of TLS for this specification. In
 order to facilitate implementation, this section provides a
 non-normative description of the parts of TLS 1.3 which are relevant
 to TCPINC. {{I-D.ietf-tls-tls13}} remains the normative reference for
-TLS 1.3. In order to match TLS terminology, we use the term "client"
+TLS 1.3 and bracketed references (e.g., [S. 1.2.3.4] refer to the
+corresponding section in that document.)
+In order to match TLS terminology, we use the term "client"
 to indicate the TCP-ENO "A" role (See {{I-D.bittau-tcpinc-tcpeno}};
 Section 3.1) and "server" to indicate the "B" role.
 
@@ -201,13 +204,56 @@ certificates.
 ### Basic Handshake
 
 In order to initiate the TLS handshake, the client sends a "ClientHello"
-message
+message [S. 6.3.1.1].
+
+~~~~
+       struct {
+           ProtocolVersion client_version = { 3, 4 };    /* TLS v1.3 */
+           Random random;
+           uint8 session_id_len_RESERVED;                /* Must be zero */
+           CipherSuite cipher_suites<2..2^16-2>;
+           uint8 compression_methods_len_RESERVED;       /* Must be zero */
+           Extension extensions<0..2^16-1>;
+       } ClientHello;
+~~~~
+
+The fields listed here have the following meanings:
+
+client_version
+: The version of the TLS protocol by which the client wishes to
+  communicate during this session.
+
+random
+: A 32-byte random nonce.
+
+cipher_suites
+: This is a list of the cryptographic options supported by the
+  client, with the client's first preference first.
+{:br}
+
+extensions contains a set of extension fields. The client MUST include the
+following extensions:
+
+SignatureAlgorithms [S. 6.3.2.1]
+: A list of signature/hash algorithm pairs the client supports
+
+NamedGroup [S. 6.3.2.2]
+: A list of (EC)DHE groups that the client supports
+
+ClientKeyShare [S. 6.3.2.3]
+: Zero or more (EC)DHE shares drawn from the groups in NamedGroup.
+This SHOULD contain either a P-256 key or an X25519 key.
+{:br}
+
+
+The client SHOULD also include a ServerCertTypeExtension containing
+type "Raw Public Key" {{RFC7250}}, indicating its willingness to
+accept a raw public key rather than an X.509 certificate in the
+server's Certificate message.
 
 
 
-
-
-
+  
 
 ## TLS 1.2 Profile {#tls12-profile}
 
