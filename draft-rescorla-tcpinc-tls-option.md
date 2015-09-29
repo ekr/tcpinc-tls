@@ -219,6 +219,8 @@ message [S. 6.3.1.1].
 
 The fields listed here have the following meanings:
 
+{:br: vspace="0"}
+
 client_version
 : The version of the TLS protocol by which the client wishes to
   communicate during this session.
@@ -229,7 +231,7 @@ random
 cipher_suites
 : This is a list of the cryptographic options supported by the
   client, with the client's first preference first.
-{:br}
+{: br}
 
 extensions contains a set of extension fields. The client MUST include the
 following extensions:
@@ -243,7 +245,7 @@ NamedGroup [S. 6.3.2.2]
 ClientKeyShare [S. 6.3.2.3]
 : Zero or more (EC)DHE shares drawn from the groups in NamedGroup.
 This SHOULD contain either a P-256 key or an X25519 key.
-{:br}
+{: br}
 
 
 The client SHOULD also include a ServerCertTypeExtension containing
