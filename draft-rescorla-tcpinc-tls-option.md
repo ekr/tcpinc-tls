@@ -201,7 +201,9 @@ certificates.
 
 
 
-### Basic Handshake
+### Basic 1-RTT Handshake
+
+#### Client's First Flight
 
 In order to initiate the TLS handshake, the client sends a "ClientHello"
 message [S. 6.3.1.1].
@@ -237,7 +239,7 @@ extensions contains a set of extension fields. The client MUST include the
 following extensions:
 
 SignatureAlgorithms [S. 6.3.2.1]
-: A list of signature/hash algorithm pairs the client supports
+: A list of signature/hash algorithm pairs the client supports.
 
 NamedGroup [S. 6.3.2.2]
 : A list of (EC)DHE groups that the client supports
@@ -254,7 +256,45 @@ accept a raw public key rather than an X.509 certificate in the
 server's Certificate message.
 
 
+#### Server's First Flight
 
+The server respond's to the client's first flight with a sequence of
+messages:
+
+ServerHello [6.3.1.2]
+: Contains the server's response to the client's offered parameters.
+See below for more details on this message.    
+
+ServerKeyShare [6.3.3]
+: Contains the server's (EC)DHE share for one of the groups offered
+in the client's ClientKeyShare message.
+
+EncryptedExtensions [6.3.4]
+: Responses to the extensions offered by the client. In this case,
+the only relevant extension is the ServerCertTypeExtension.
+
+Certificate [6.3.5]
+: The server's certificate. If the client offered a "Raw Public Key"
+type in ServerCertExtension, then this SHALL contain a SubjectPublicKeyInfo
+value for the server's key as specified in {{RFC7250}}.
+Otherwise, it SHALL contain one or more X.509 Certificates, as specified
+in {{I-D.ietf-tls-tls13}}, Section 6.3.5.
+
+ServerConfiguration [6.3.7]
+: A server configuration value for use in 0-RTT (see {{zero-rtt-exchange}}).
+
+CertificateVerify [6.3.8]
+: A signature over the entire handshake transcript using the key provided
+in the certificate message.
+
+Finished [6.3.9]
+: A MAC over the entire handshake.
+{: br}
+
+
+    
+
+### Zero-RTT Exchange
   
 
 ## TLS 1.2 Profile {#tls12-profile}
@@ -288,7 +328,6 @@ Implementations of this specification SHOULD implement the following cipher suit
     TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
     TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
 ~~~~
-
 
 
 
