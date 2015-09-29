@@ -205,6 +205,8 @@ certificates.
 
 #### Client's First Flight
 
+##### Sending
+
 In order to initiate the TLS handshake, the client sends a "ClientHello"
 message [S. 6.3.1.1].
 
@@ -255,8 +257,14 @@ type "Raw Public Key" {{RFC7250}}, indicating its willingness to
 accept a raw public key rather than an X.509 certificate in the
 server's Certificate message.
 
+##### Receiving
+
+[TODO]
+
 
 #### Server's First Flight
+
+##### Sending
 
 The server respond's to the client's first flight with a sequence of
 messages:
@@ -267,7 +275,8 @@ See below for more details on this message.
 
 ServerKeyShare [6.3.3]
 : Contains the server's (EC)DHE share for one of the groups offered
-in the client's ClientKeyShare message.
+in the client's ClientKeyShare message. All messages after ServerKeyShare
+are encrypted using keys derived from the ClientKeyShare and ServerKeyShare.
 
 EncryptedExtensions [6.3.4]
 : Responses to the extensions offered by the client. In this case,
@@ -275,7 +284,7 @@ the only relevant extension is the ServerCertTypeExtension.
 
 Certificate [6.3.5]
 : The server's certificate. If the client offered a "Raw Public Key"
-type in ServerCertExtension, then this SHALL contain a SubjectPublicKeyInfo
+type in ServerCertTypeExtension, then this SHALL contain a SubjectPublicKeyInfo
 value for the server's key as specified in {{RFC7250}}.
 Otherwise, it SHALL contain one or more X.509 Certificates, as specified
 in {{I-D.ietf-tls-tls13}}, Section 6.3.5.
@@ -288,14 +297,64 @@ CertificateVerify [6.3.8]
 in the certificate message.
 
 Finished [6.3.9]
-: A MAC over the entire handshake.
+: A MAC over the entire handshake transcript up to this point.
 {: br}
 
 
-    
+The ServerHello
+
+Once the server has sent the Finished message, it can immediately
+generate the application traffic keys and start sending application
+traffic to the client.
+
+
+#### Receiving
+
+Upon receiving the server's first flight, the client proceeds as follows:
+
+* Read the ServerHello message to determine the cryptographic parameters.
+
+* Read the ServerKeyShare message and use that in combination with the
+  ClientKeyShare to compute the keys which are used to encrypt the
+  rest of the handshake.
+
+* Read the EncryptedExtensions message. As noted above, the main extension
+  which needs to be processed is ServerCertTypeExtension, which indicates
+  the format of the server's certificate message.
+
+* Read the server's certificate message and store the server's public key.
+  Unless the implementation is specifically configured otherwise, it
+  SHOULD NOT attempt to validate the certificate, even if it is of
+  type X.509 but merely extract the key.
+
+* Read the server's CertificateVerify message and verify the server's
+  signature over the handshake transcript. If the signature does not
+  verify, the client terminates the handshake with an alert (Section 6.1.2).
+
+* Read the server's Finished message and verify the finished MAC based
+  on the DH shared secret. If the MAC does not verify, the client
+  terminates the handshake with an alert.
+  
+
+#### Client's Second Flight
+
+Finally, the client sends a Finished message which contains a MAC
+over the handshake transcript (except for the server's Finished).
+[[TODO: In the upcoming draft of TLS 1.3, the client's Finished
+will likely include the server's Finished.]]
+Once the client has transmitted the Finished, it can begin
+sending encrypted traffic to the server.
+
+The server reads the client's Finished message and verifies the
+MAC. If the MAC does not verify, the client terminates the handshake with an alert.
+
 
 ### Zero-RTT Exchange
   
+
+
+### Key Schedule
+
 
 ## TLS 1.2 Profile {#tls12-profile}
 
@@ -305,6 +364,10 @@ versions of TLS prior to TLS 1.2. Implementations MUST NOT negotiate
 non-AEAD cipher suites and MUST use only PFS cipher suites with a key
 of at least 2048 bits (finite field) or 256 bites (elliptic curve).
 
+
+## Forbidden Features
+
+[TODO]
 
 ## Cryptographic Algorithms 
 
@@ -328,7 +391,6 @@ Implementations of this specification SHOULD implement the following cipher suit
     TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
     TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
 ~~~~
-
 
 
 
