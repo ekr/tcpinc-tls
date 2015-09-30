@@ -135,6 +135,11 @@ on (EC)DHE key exchange.
   connected previous and which allows the client to send data
   on the first flight (see {{tls-0-rtt}}
 
+In both case, the server is expected to have a signing key which
+may either be a freshly-generated key or a long-term key
+(allowing TOFU-style applications). They key need not be
+associated with any certificate and can simply be a bare key.
+
 Full TLS 1.3 includes support for additional modes based on pre-shared
 keys, but TCPINC implementations MAY opt to omit them. Implementations
 MUST implement the 1-RTT mode and SHOULD implement the 0-RTT mode.
@@ -258,10 +263,16 @@ server's Certificate message.
 
 ##### Receiving
 
+Upon receiving the client's ClientHello, the server selects a
+ciphersuite and (EC)DHE group out of the lists provided by the client
+in the cipher_suites list and the NamedGroup extension. If the client
+supplied an appropriate ClientKeyShare for that group, then the server
+responds with a ServerHello (see {{server-first-flight). Otherwise, it
+replies with a HelloRetryRequest {{hello-retry-request}}, indicating
+that the client needs to re-send the ClientHello with an appropriate
+key share.
 
-
-
-#### Server's First Flight
+#### Server's First Flight {#server-first-flight}
 
 ##### Sending
 
@@ -290,7 +301,9 @@ Certificate [6.3.5]
 type in ServerCertTypeExtension, then this SHALL contain a SubjectPublicKeyInfo
 value for the server's key as specified in {{RFC7250}}.
 Otherwise, it SHALL contain one or more X.509 Certificates, as specified
-in {{I-D.ietf-tls-tls13}}, Section 6.3.5.
+in {{I-D.ietf-tls-tls13}}, Section 6.3.5. In either case, this message
+MUST contain a key which is consistent with the client's
+SignatureAlgorithms and NamedGroup extensions.
 
 ServerConfiguration [6.3.7]
 : A server configuration value for use in 0-RTT (see {{zero-rtt-exchange}}).
@@ -348,7 +361,30 @@ Once the client has transmitted the Finished, it can begin
 sending encrypted traffic to the server.
 
 The server reads the client's Finished message and verifies the
-MAC. If the MAC does not verify, the client terminates the handshake with an alert.
+MAC. If the MAC does not verify, the client terminates the handshake
+with an alert.
+
+
+### Hello Retry Request [6.3.1.3]
+
+Because there are a small number of recommended groups, the ClientKeyShare
+will generally contain a key share for a group that the server supports.
+However, it is possible that the client will not send such a key share, but
+there may be another group that the client and server jointly support.
+In that case, the server MUST send a HelloRetryRequest indicating the
+desired group:
+
+~~~~
+      struct {
+          ProtocolVersion server_version;
+          CipherSuite cipher_suite;
+          NamedGroup selected_group;
+          Extension extensions<0..2^16-1>;
+      } HelloRetryRequest;
+~~~~
+
+In response to the HelloRetryRequest the client re-sends its ClientHello
+but with the addition of the group indicated in "selected_group".
 
 
 ### Zero-RTT Exchange
