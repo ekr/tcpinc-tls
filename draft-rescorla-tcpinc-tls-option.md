@@ -93,6 +93,22 @@ Otherwise, the application data is sent as usual.
 If use of TLS is negotiated, the data sent over TCP simply is
 TLS data in compliance with {{RFC5246}}.
 
+Once the TLS handshake has completed, all application data SHALL be
+sent over that negotiated TLS channel. Application data MUST NOT
+be sent prior to the TLS handshake.
+
+If the TLS handshake fails for non-cryptographic reasons such as
+failure to negotiate a compatible cipher or the like, endpoints SHOULD
+behave as if the the TCP-TLS option was not present. This is obviously
+not the conventional behavior for TLS failure, but as the entire idea
+here is to be opportunistic and the attacker can simply suppress the
+TCP-TLS option entirely, this provides the maximum robustness against
+broken intermediaries. If the TLS handshake fails for cryptographic
+reasons that indicate damage to the datastream (e.g., a decryption
+failure or a Finished failure) then the endpoints SHOULD signal a
+connection failure, as this suggests that there is a middlebox
+modifying the data and there is a reasonable chance that the state is
+now corrupted.
 
 
 # TLS Profile
@@ -177,33 +193,6 @@ or an X.509 certificate (this is intended to support the
 out-of-band use case indicated above). Implementations
 MUST support bare public keys and MAY support X.509
 certificates.
-
-~~~
-       Client                                               Server
-
-       ClientHello
-         + ClientKeyShare
-         + EarlyDataIndication
-       (EncryptedExtensions)
-       (Application Data)        -------->
-                                                       ServerHello
-                                             + EarlyDataIndication
-                                                    ServerKeyShare
-                                             {EncryptedExtensions}
-                                            {ServerConfiguration*}
-                                                    {Certificate*}
-                                             {CertificateRequest*}
-                                              {CertificateVerify*}
-                                 <--------              {Finished}
-       {Finished}                -------->
-
-       [Application Data]        <------->      [Application Data]
-
-            () Indicates messages protected using keys
-               derived from the static secret.
-~~~
-{: #tls-0-rtt title="Message flow for a zero round trip handshake"}
-
 
 
 ### Basic 1-RTT Handshake
@@ -365,7 +354,7 @@ MAC. If the MAC does not verify, the client terminates the handshake
 with an alert.
 
 
-### Hello Retry Request [6.3.1.3]
+### Hello Retry Request [6.3.1.3] {#hello-retry-request}
 
 Because there are a small number of recommended groups, the ClientKeyShare
 will generally contain a key share for a group that the server supports.
@@ -389,9 +378,76 @@ but with the addition of the group indicated in "selected_group".
 
 ### Zero-RTT Exchange
   
+TLS 1.3 allows the server to send its first application data
+message to the client immediately upon receiving the client's
+first handshake message (which the client can send upon
+receiving the server's SYN/ACK). However, in the basic
+handshake, the client is required to wait for the server's first
+flight before it can send to the server. TLS 1.3 also includes
+a "Zero-RTT" feature which allows the client to send data on
+its first flight to the server.
+
+In order to enable this feature, in an initial handshake the
+server sends a ServerConfiguration message which contains the
+server's semi-static (EC)DH key which can be used for a future
+handshake:
+
+~~~~
+      struct {
+          opaque configuration_id<1..2^16-1>;
+          uint32 expiration_date;
+          NamedGroup group;
+          opaque server_key<1..2^16-1>;
+          EarlyDataType early_data_type;
+          ConfigurationExtension extensions<0..2^16-1>;
+      } ServerConfiguration;
+~~~~
+
+The group and server_key fields contain the server's (EC)DH key
+and the early_data_type field is used to indicate what data
+can be sent in zero-RTT. Because client authentication is forbidden
+in TCPINC-uses of TLS 1.3 (see {{forbidden-features}}),
+the only valid value here is "early_data", indicating that
+the client can send data in 0-RTT.
+
+When a ServerConfiguration is available, the client can
+send an EarlyDataIndication extension in its ClientHello
+and then start sending data immediately, as shown below.
+
+~~~
+       Client                                               Server
+
+       ClientHello
+         + ClientKeyShare
+         + EarlyDataIndication
+       (EncryptedExtensions)
+       (Application Data)        -------->
+                                                       ServerHello
+                                             + EarlyDataIndication
+                                                    ServerKeyShare
+                                             {EncryptedExtensions}
+                                            {ServerConfiguration*}
+                                                    {Certificate*}
+                                              {CertificateVerify*}
+                                 <--------              {Finished}
+       {Finished}                -------->
+
+       [Application Data]        <------->      [Application Data]
+
+            () Indicates messages protected using keys
+               derived from the static secret.
+~~~
+{: #tls-0-rtt title="Message flow for a zero round trip handshake"}
 
 
 ### Key Schedule
+
+[TODO]
+
+
+### Record Protection
+
+[TODO]
 
 
 ## TLS 1.2 Profile {#tls12-profile}
@@ -405,7 +461,21 @@ of at least 2048 bits (finite field) or 256 bites (elliptic curve).
 
 ## Forbidden Features
 
-[TODO]
+When TLS is used with TCPINC, a number of TLS features MUST NOT
+be used, including:
+
+* TLS certificate-based client authentication
+* Session resumption [????]
+
+
+## Session ID
+
+TCP-ENO Section 4.1 defines a session ID feature (not to be confused with TLS
+Session IDs). When the protocol in use is TLS, the session ID is computed
+via a TLS Exporter {{RFC5705}} using the Exporter Label [[TBD]] and
+with the "context" input being the TCP-ENO negotiation transcript
+defined in {{I-D.bittau-tcpinc-tcpeno}} Section 3.4.
+
 
 ## Cryptographic Algorithms 
 
@@ -431,94 +501,7 @@ Implementations of this specification SHOULD implement the following cipher suit
 ~~~~
 
 
-
-
-
 # Extension Definition
-
-[TODO: How to jointly support TLS 1.2 and TLS 1.3]
-
-                          
-
-
-
-
-
-
-If an endpoint sends the TCP-TLS option and correctly
-receives it from the other side it SHALL immediately negotiate TLS, taking on the role
-described above. Figure 3 shows a detailed message flow for TLS 1.2
-using an anonymous cipher suite such as DH_anon (this is the simplest
-practice for the case where no authentication is desired or where
-a channel binding {{channel-bindings}} is to be used). The point
-at which each side is able to write is marked with @@@ (assuming
-False Start {{I-D.ietf-tls-falsestart}}).
-
-~~~
-             SYN + TCP-TLS ->
-                                         <- SYN/ACK + TCP/TLS
-             ACK ->
-             ClientHello ->
-                                                  ServerHello
-                                           ServerKeyExchange*
-                                              ServerHelloDone
-             ClientKeyExchange
-             [ChangeCipherSpec]
-             Finished            ->
-             @@@
-   
-                                           [ChangeCipherSpec]
-                                                  <- Finished
-                                                          @@@
-
-             <--------- Application Data over TLS ---------->
-             
-                Figure 3: Complete protocol flow for TLS 1.2
-~~~
-
-
-Figure 4 shows the same scenario for TLS 1.3 
-{{I-D.ietf-tls-tls13}} in the "1-RTT mode"
-which is the basic mode for two endpoints which have never
-communicated before:
-
-~~~
-             SYN + TCP-TLS ->
-                                         <- SYN/ACK + TCP/TLS
-             ACK ->
-             ClientHello + ClientKeyShare ->
-                                                  ServerHello
-                                              ServerKeyShare*
-                                                     Finished
-                                                          @@@
-             Finished            ->
-             @@@
-  
-             <--------- Application Data over TLS ---------->
-             
-                Figure 4: Complete protocol flow for TLS 1.2
-~~~
-
-Note that in future communications, the client can start sending
-data on its first flight (0-RTT mode) if the server provides
-a ServerConfiguration.
-
-Once the TLS handshake has completed, all application data SHALL be
-sent over that negotiated TLS channel. Application data MUST NOT
-be sent prior to the TLS handshake.
-
-If the TLS handshake fails for non-cryptographic reasons such as
-failure to negotiate a compatible cipher or the like, endpoints SHOULD
-behave as if the the TCP-TLS option was not present. This is obviously
-not the conventional behavior for TLS failure, but as the entire idea
-here is to be opportunistic and the attacker can simply suppress the
-TCP-TLS option entirely, this provides the maximum robustness against
-broken intermediaries. If the TLS handshake fails for cryptographic
-reasons that indicate damage to the datastream (e.g., a decryption
-failure or a Finished failure) then the endpoints SHOULD signal a
-connection failure, as this suggests that there is a middlebox
-modifying the data and there is a reasonable chance that the state is
-now corrupted.
 
 
 # Transport Integrity
@@ -582,26 +565,6 @@ is inherently more flexible but does not provide as immediate
 transparent deployment. It is also possible for systems to
 offer both options.
 
-# TLS Profile
-
-Implementations of this specification MUST at minimum support TLS 1.2
-{{RFC5246}} and MUST support the following cipher suites [TBD]
-and MUST NOT negotiate versions of TLS prior to TLS 1.2. Implementations MUST
-NOT negotiate non-AEAD cipher suites and MUST use only PFS cipher
-suites with a key of at least 2048 bits (finite field) or 256 bites
-(elliptic curve). Implementations MUST implement and require the TLS
-Extended Master Secret Extension {{I-D.ietf-tls-session-hash}}.
-
-[[OPEN ISSUE: What cipher suites? Presumably we require one
-authenticated and one anonymous cipher suite, all with GCM.]]
-[[OPEN ISSUE: If TLS 1.3 is ready, we may want to require that.]]
-
-
-# Channel Bindings
-
-This specification is compatible with external authentication via
-TLS Channel Bindings {{RFC5929}}. 
-
 
 # NAT/Firewall considerations
 
@@ -616,7 +579,7 @@ if it is behind such a device relatively readily.
 
 # IANA Considerations
 
-IANA [shall register/has registered] the TCP option XX for TCP-TLS.
+IANA [shall register/has registered] the TCP-ENO suboption XX for TCP-TLS.
 
 IANA [shall register/has registered] the ALPN code point "tcpao"
 to indicate the use of TCP-TLS with TCP-AO.
