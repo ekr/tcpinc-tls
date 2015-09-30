@@ -205,7 +205,7 @@ certificates.
 
 #### Client's First Flight
 
-##### Sending
+##### Sending {#client-first-flight-sending}
 
 In order to initiate the TLS handshake, the client sends a "ClientHello"
 message [S. 6.3.1.1].
@@ -251,7 +251,6 @@ ClientKeyShare [S. 6.3.2.3]
 This SHOULD contain either a P-256 key or an X25519 key.
 {: br}
 
-
 The client SHOULD also include a ServerCertTypeExtension containing
 type "Raw Public Key" {{RFC7250}}, indicating its willingness to
 accept a raw public key rather than an X.509 certificate in the
@@ -259,7 +258,7 @@ server's Certificate message.
 
 ##### Receiving
 
-[TODO]
+
 
 
 #### Server's First Flight
@@ -270,8 +269,12 @@ The server respond's to the client's first flight with a sequence of
 messages:
 
 ServerHello [6.3.1.2]
-: Contains the server's response to the client's offered parameters.
-See below for more details on this message.    
+: Contains a nonce and the cipher suite that the server has selected out
+of the client's list. The server MUST support the extensions listed
+in {{client-first-flight-sending}} and MUST also ignore any extensions
+it does not recognize;o this implies that the server MAY implement
+solely the extensions listed in {{client-first-flight-sending}} and
+the EarlyDataExtension {{zero-rtt-exchange}}.
 
 ServerKeyShare [6.3.3]
 : Contains the server's (EC)DHE share for one of the groups offered
@@ -301,7 +304,6 @@ Finished [6.3.9]
 {: br}
 
 
-The ServerHello
 
 Once the server has sent the Finished message, it can immediately
 generate the application traffic keys and start sending application
