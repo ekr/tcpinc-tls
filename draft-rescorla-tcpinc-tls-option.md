@@ -22,9 +22,11 @@ author:
 
 normative:
   RFC2119:
+  RFC5116:
   RFC5246:
   RFC5925:
   RFC5705:
+  RFC5869:
   RFC7250:
   I-D.ietf-tls-applayerprotoneg:
   I-D.ietf-tls-session-hash:
@@ -122,7 +124,7 @@ for applications to do out-of-band negotiation of TLS, and those
 applications are likely to already have support for TLS 1.2
 {{RFC5246}}. In order to accomodate both cases, we specify a wire
 encoding that allows for negotiation of multiple TLS versions
-{{extension-definition}} but encourage implementations to
+{{suboption-definition}} but encourage implementations to
 implement only TLS 1.3. Implementations which also implement TLS 1.2
 MUST implement the profile described in {{tls12-profile}}
 
@@ -132,8 +134,12 @@ MUST implement the profile described in {{tls12-profile}}
 TLS 1.3 is the preferred version of TLS for this specification. In
 order to facilitate implementation, this section provides a
 non-normative description of the parts of TLS 1.3 which are relevant
-to TCPINC. {{I-D.ietf-tls-tls13}} remains the normative reference for
-TLS 1.3 and bracketed references (e.g., [S. 1.2.3.4] refer to the
+to TCPINC and defines a baseline of algorithms and modes
+which MUST be supported. Other modes, cipher suites, key exchange
+algorithms, certificate formats as defined in 
+{{I-D.ietf-tls-tls13}} MAY also be used and that document
+remains the normative reference for
+TLS 1.3. Bracketed references (e.g., [S. 1.2.3.4] refer to the
 corresponding section in that document.)
 In order to match TLS terminology, we use the term "client"
 to indicate the TCP-ENO "A" role (See {{I-D.bittau-tcpinc-tcpeno}};
@@ -142,7 +148,7 @@ Section 3.1) and "server" to indicate the "B" role.
 ### Handshake Modes
 
 TLS 1.3 as used in TCPINC supports two handshake modes, both based
-on (EC)DHE key exchange.
+on ECDHE key exchange.
 
 * A 1-RTT mode which is used when the client has no information
   about the server's keying material (see {{tls-full}})
@@ -170,8 +176,8 @@ MUST implement the 1-RTT mode and SHOULD implement the 0-RTT mode.
                                                  ServerKeyShare*
                                            {EncryptedExtensions}
                                           {ServerConfiguration*}
-                                                  {Certificate*}
-                                            {CertificateVerify*}
+                                                  {Certificate}
+                                            {CertificateVerify}
                                <--------              {Finished}
      {Finished}                -------->
      [Application Data]        <------->      [Application Data]
@@ -238,14 +244,14 @@ SignatureAlgorithms [S. 6.3.2.1]
 : A list of signature/hash algorithm pairs the client supports.
 
 NamedGroup [S. 6.3.2.2]
-: A list of (EC)DHE groups that the client supports
+: A list of ECDHE groups that the client supports
 
 ClientKeyShare [S. 6.3.2.3]
-: Zero or more (EC)DHE shares drawn from the groups in NamedGroup.
+: Zero or more ECDHE shares drawn from the groups in NamedGroup.
 This SHOULD contain either a P-256 key or an X25519 key.
 {: br}
 
-The client SHOULD also include a ServerCertTypeExtension containing
+The client MUST also include a ServerCertTypeExtension containing
 type "Raw Public Key" {{RFC7250}}, indicating its willingness to
 accept a raw public key rather than an X.509 certificate in the
 server's Certificate message.
@@ -253,13 +259,15 @@ server's Certificate message.
 ##### Receiving
 
 Upon receiving the client's ClientHello, the server selects a
-ciphersuite and (EC)DHE group out of the lists provided by the client
+ciphersuite and ECDHE group out of the lists provided by the client
 in the cipher_suites list and the NamedGroup extension. If the client
 supplied an appropriate ClientKeyShare for that group, then the server
 responds with a ServerHello (see {{server-first-flight). Otherwise, it
 replies with a HelloRetryRequest {{hello-retry-request}}, indicating
 that the client needs to re-send the ClientHello with an appropriate
-key share.
+key share; because all TCPINC implementations are required to
+support P-256, this should not happen unless P-256 is deprecated
+by a subsequent specification.
 
 #### Server's First Flight {#server-first-flight}
 
@@ -272,12 +280,11 @@ ServerHello [6.3.1.2]
 : Contains a nonce and the cipher suite that the server has selected out
 of the client's list. The server MUST support the extensions listed
 in {{client-first-flight-sending}} and MUST also ignore any extensions
-it does not recognize;o this implies that the server MAY implement
-solely the extensions listed in {{client-first-flight-sending}} and
-the EarlyDataExtension {{zero-rtt-exchange}}.
+it does not recognize this implies that the server can implement
+solely the extensions listed in {{client-first-flight-sending}}.
 
 ServerKeyShare [6.3.3]
-: Contains the server's (EC)DHE share for one of the groups offered
+: Contains the server's ECDHE share for one of the groups offered
 in the client's ClientKeyShare message. All messages after ServerKeyShare
 are encrypted using keys derived from the ClientKeyShare and ServerKeyShare.
 
@@ -298,14 +305,12 @@ ServerConfiguration [6.3.7]
 : A server configuration value for use in 0-RTT (see {{zero-rtt-exchange}}).
 
 CertificateVerify [6.3.8]
-: A signature over the entire handshake transcript using the key provided
+: A signature over the handshake transcript using the key provided
 in the certificate message.
 
 Finished [6.3.9]
 : A MAC over the entire handshake transcript up to this point.
 {: br}
-
-
 
 Once the server has sent the Finished message, it can immediately
 generate the application traffic keys and start sending application
@@ -406,7 +411,7 @@ handshake:
 The group and server_key fields contain the server's (EC)DH key
 and the early_data_type field is used to indicate what data
 can be sent in zero-RTT. Because client authentication is forbidden
-in TCPINC-uses of TLS 1.3 (see {{forbidden-features}}),
+in TCPINC-uses of TLS 1.3 (see {{deprecated-features}}),
 the only valid value here is "early_data", indicating that
 the client can send data in 0-RTT.
 
@@ -439,15 +444,66 @@ and then start sending data immediately, as shown below.
 ~~~
 {: #tls-0-rtt title="Message flow for a zero round trip handshake"}
 
+IMPORTANT NOTE: TLS 1.3 Zero-RTT data is inherently replayable
+(see the note in {{I-D.ietf-tls-tls13}} Section 6.2.2). If only
+passive threat models are relevant, this issue becomes less
+important. However, if applications are performing an external
+channel binding using the session id to prevent active attack, then
+care must be taken to prevent this form of attack. See
+Section 6.2.2 of {{I-D.ietf-tls-tls13}} for more information
+on this topic.
+
+
 
 ### Key Schedule
 
-[TODO]
+TLS 1.3 derives its traffic keys from two input keying material
+values:
+
+Ephemeral Secret (ES): A secret which is derived from ClientKeyShare
+   and ServerKeyShare.
+
+Static Secret (SS): A secret which which is derived from ClientKeyShare
+   and either ServerKeyShare (in the 1-RTT case) or the public key
+   in the ServerConfiguration (in the 0-RTT case).
+
+The handshake is encrypted under keys derived from ES.  The ordinary
+traffic keys are derived from the combination of ES and SS. The 0-RTT
+traffic keys are derived solely from ES and therefore have limited
+forward security. All key derivation is done using HKDF {{RFC5869}}.
 
 
 ### Record Protection
 
-[TODO]
+Once the TLS handshake has completed, all data is protected as 
+a series of TLS Records.
+
+~~~~
+       struct {
+           ContentType opaque_type = application_data(23); /* see fragment.type */
+           ProtocolVersion record_version = { 3, 1 };    /* TLS v1.x */
+           uint16 length;
+           aead-ciphered struct {
+              opaque content[TLSPlaintext.length];
+              ContentType type;
+              uint8 zeros[length_of_padding];
+           } fragment;
+       } TLSCiphertext;
+~~~~~
+
+Each record is encrypted with an AEAD cipher with the following parameters:
+
+* The AEAD nonce is constructed by generating a per-connection
+  nonce mask of length max(8 bytes, N_MIN) for the AEAD algorithm
+  (see {{RFC5116}} Section 4) and XORing it with the record
+  sequence number (left-padded with zeroed).
+
+* The additional data is the sequence number + the TLS version
+  number.
+
+The record data MAY BE padded with zeros to the right. Because the
+content type value is always non-zero, the padding is removed by
+removing bytes from the right until a non-zero byte is encountered.
 
 
 ## TLS 1.2 Profile {#tls12-profile}
@@ -459,12 +515,13 @@ non-AEAD cipher suites and MUST use only PFS cipher suites with a key
 of at least 2048 bits (finite field) or 256 bites (elliptic curve).
 
 
-## Forbidden Features
+## Deprecated Features
 
 When TLS is used with TCPINC, a number of TLS features MUST NOT
 be used, including:
 
 * TLS certificate-based client authentication
+* Renegotiation
 * Session resumption [????]
 
 
@@ -483,7 +540,6 @@ Implementations of this specification MUST implement the following cipher
 suites:
 
 ~~~~
-    TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
     TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 
 ~~~~
 
@@ -494,14 +550,14 @@ with secp256r1 (NIST P-256) and SHOULD support key agrement with X25519
 Implementations of this specification SHOULD implement the following cipher suites:
 
 ~~~~
-    TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
-    TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
     TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
     TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
 ~~~~
 
 
-# Extension Definition
+# Suboption Definition
+
+This document uses a one byte TCP-ENO suboption. See {{iana-considerations}}.
 
 
 # Transport Integrity
@@ -521,29 +577,10 @@ application data is TLS protected, this will not result in the
 application receiving bogus data, but it will constitute a DoS on the
 connection.
 
-This attack can be countered by using TCP-TLS in combination
-with TCP-AO {{RFC5925}}, as follows:
-
-1. The TLS connection is negotiated using the "tcpao"
-   ALPN {{I-D.ietf-tls-applayerprotoneg}} indicator.
-
-1. Upon TLS handshake completion,
-   a TLS Exporter {{RFC5705}} is used to generate keying
-   material of appropriate length using exporter label TBD.
-
-1. Further packets are protected using TCP-AO with the generated
-   keys.
-
-The Finished messages MUST NOT be protected with AO. The first
-application data afterwards MUST be protected with AO. Note that
-because of retransmission, non-AO packets may be received after
-AO has been engaged; they MUST be ignored.
-
-[[OPEN ISSUE: How do we negotiate the parameters? Do we
-need a use_ao option like with RFC 5764? Is ALPN really
-what we want here?]]
-
-[[TODO: verify that the state machine matches up here.]]
+This attack could be countered by using TCP-TLS in combination
+with TCP-AO {{RFC5925}}, using ALPN to negotiate the use of
+AO. [[OPEN ISSUE: Is this something we want? Maybe in a separate
+specification.]]
 
 
 # Implementation Options
