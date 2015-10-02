@@ -57,7 +57,7 @@ as pull requests at https://github.com/ekr/tcpinc-tls.
 Instructions are on that page as well.
 
 The TCPINC WG is chartered to define protocols to provide ubiquitous,
-transparent security for TCP connections. The WG has specified 
+transparent security for TCP connections. The WG is specifying
 The TCP Encryption Negotiation Option (TCP-ENO) {{I-D.bittau-tcpinc-tcpeno}}
 which allows for negotiation of encryption at the TCP layer. This
 document describes a binding of TLS {{RFC5246}} to TCP-ENO as
@@ -93,7 +93,8 @@ Otherwise, the application data is sent as usual.
                        Figure 2: Fall back to TCP
 
 If use of TLS is negotiated, the data sent over TCP simply is
-TLS data in compliance with {{RFC5246}}.
+TLS data in compliance with TLS 1.2 {{RFC5246}} or TLS 1.3
+{{I-D.ietf-tls-tls13}}.
 
 Once the TLS handshake has completed, all application data SHALL be
 sent over that negotiated TLS channel. Application data MUST NOT
@@ -124,7 +125,7 @@ for applications to do out-of-band negotiation of TLS, and those
 applications are likely to already have support for TLS 1.2
 {{RFC5246}}. In order to accomodate both cases, we specify a wire
 encoding that allows for negotiation of multiple TLS versions
-{{suboption-definition}} but encourage implementations to
+({{suboption-definition}}) but encourage implementations to
 implement only TLS 1.3. Implementations which also implement TLS 1.2
 MUST implement the profile described in {{tls12-profile}}
 
@@ -157,7 +158,7 @@ on ECDHE key exchange.
   connected previous and which allows the client to send data
   on the first flight (see {{tls-0-rtt}}
 
-In both case, the server is expected to have a signing key which
+In both case, the server is expected to have an ECDSA signing key which
 may either be a freshly-generated key or a long-term key
 (allowing TOFU-style applications). They key need not be
 associated with any certificate and can simply be a bare key.
@@ -173,11 +174,11 @@ MUST implement the 1-RTT mode and SHOULD implement the 0-RTT mode.
      ClientHello
        + ClientKeyShare        -------->
                                                      ServerHello
-                                                 ServerKeyShare*
+                                                  ServerKeyShare
                                            {EncryptedExtensions}
                                           {ServerConfiguration*}
-                                                  {Certificate}
-                                            {CertificateVerify}
+                                                   {Certificate}
+                                             {CertificateVerify}
                                <--------              {Finished}
      {Finished}                -------->
      [Application Data]        <------->      [Application Data]
@@ -263,7 +264,7 @@ ciphersuite and ECDHE group out of the lists provided by the client
 in the cipher_suites list and the NamedGroup extension. If the client
 supplied an appropriate ClientKeyShare for that group, then the server
 responds with a ServerHello (see {{server-first-flight). Otherwise, it
-replies with a HelloRetryRequest {{hello-retry-request}}, indicating
+replies with a HelloRetryRequest ({{hello-retry-request}}), indicating
 that the client needs to re-send the ClientHello with an appropriate
 key share; because all TCPINC implementations are required to
 support P-256, this should not happen unless P-256 is deprecated
@@ -280,7 +281,7 @@ ServerHello [6.3.1.2]
 : Contains a nonce and the cipher suite that the server has selected out
 of the client's list. The server MUST support the extensions listed
 in {{client-first-flight-sending}} and MUST also ignore any extensions
-it does not recognize this implies that the server can implement
+it does not recognize; this implies that the server can implement
 solely the extensions listed in {{client-first-flight-sending}}.
 
 ServerKeyShare [6.3.3]
@@ -294,12 +295,13 @@ the only relevant extension is the ServerCertTypeExtension.
 
 Certificate [6.3.5]
 : The server's certificate. If the client offered a "Raw Public Key"
-type in ServerCertTypeExtension, then this SHALL contain a SubjectPublicKeyInfo
-value for the server's key as specified in {{RFC7250}}.
-Otherwise, it SHALL contain one or more X.509 Certificates, as specified
-in {{I-D.ietf-tls-tls13}}, Section 6.3.5. In either case, this message
-MUST contain a key which is consistent with the client's
-SignatureAlgorithms and NamedGroup extensions.
+type in ServerCertTypeExtension this message SHALL contain a
+SubjectPublicKeyInfo value for the server's key as specified in
+{{RFC7250}}.  Otherwise, it SHALL contain one or more X.509
+Certificates, as specified in {{I-D.ietf-tls-tls13}}, Section
+6.3.5. In either case, this message MUST contain a key which is
+consistent with the client's SignatureAlgorithms and NamedGroup
+extensions.
 
 ServerConfiguration [6.3.7]
 : A server configuration value for use in 0-RTT (see {{zero-rtt-exchange}}).
@@ -408,16 +410,15 @@ handshake:
       } ServerConfiguration;
 ~~~~
 
-The group and server_key fields contain the server's (EC)DH key
-and the early_data_type field is used to indicate what data
-can be sent in zero-RTT. Because client authentication is forbidden
-in TCPINC-uses of TLS 1.3 (see {{deprecated-features}}),
-the only valid value here is "early_data", indicating that
-the client can send data in 0-RTT.
+The group and server_key fields contain the server's (EC)DH key and
+the early_data_type field is used to indicate what data can be sent in
+zero-RTT. Because client authentication is forbidden in TCPINC-uses of
+TLS 1.3 (see {{deprecated-features}}), the only valid value here is
+"early_data", indicating that the client can send data in 0-RTT.
 
-When a ServerConfiguration is available, the client can
-send an EarlyDataIndication extension in its ClientHello
-and then start sending data immediately, as shown below.
+When a ServerConfiguration is available, the client can send an
+EarlyDataIndication extension in its ClientHello and then start
+sending data immediately, as shown below.
 
 ~~~
        Client                                               Server
@@ -452,6 +453,8 @@ channel binding using the session id to prevent active attack, then
 care must be taken to prevent this form of attack. See
 Section 6.2.2 of {{I-D.ietf-tls-tls13}} for more information
 on this topic.
+[[OPEN ISSUE: can we use data from the TCP SYN as anti-replay
+stuff.]]
 
 
 
@@ -513,7 +516,8 @@ Secret Extension {{I-D.ietf-tls-session-hash}} and MUST NOT negotiate
 versions of TLS prior to TLS 1.2. Implementations MUST NOT negotiate
 non-AEAD cipher suites and MUST use only PFS cipher suites with a key
 of at least 2048 bits (finite field) or 256 bites (elliptic curve).
-
+TLS 1.2 implementations MUST NOT initiate renegotiation and MUST
+respond to renegotiation with a fatal "no_renegotiation" alert.
 
 ## Deprecated Features
 
@@ -521,7 +525,6 @@ When TLS is used with TCPINC, a number of TLS features MUST NOT
 be used, including:
 
 * TLS certificate-based client authentication
-* Renegotiation
 * Session resumption [????]
 
 
@@ -606,7 +609,7 @@ offer both options.
 # NAT/Firewall considerations
 
 If use of TLS is negotiated, the data sent over TCP simply is TLS data
-in compliance with {{RFC5246}.  Thus it is extremely likely to pass
+in compliance with {{RFC5246}. Thus it is extremely likely to pass
 through NATs, firewalls, etc. The only kind of middlebox that is
 likely to cause a problem is one which does protocol enforcement that
 blocks TLS on arbitrary (non-443) ports but *also* passes unknown TCP
