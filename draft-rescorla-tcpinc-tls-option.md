@@ -160,7 +160,7 @@ on ECDHE key exchange.
 
 In both case, the server is expected to have an ECDSA signing key which
 may either be a freshly-generated key or a long-term key
-(allowing TOFU-style applications). They key need not be
+(allowing TOFU-style applications). The key need not be
 associated with any certificate and can simply be a bare key.
 
 Full TLS 1.3 includes support for additional modes based on pre-shared
@@ -433,8 +433,8 @@ sending data immediately, as shown below.
                                                     ServerKeyShare
                                              {EncryptedExtensions}
                                             {ServerConfiguration*}
-                                                    {Certificate*}
-                                              {CertificateVerify*}
+                                                     {Certificate}
+                                               {CertificateVerify}
                                  <--------              {Finished}
        {Finished}                -------->
 
@@ -540,7 +540,7 @@ defined in {{I-D.bittau-tcpinc-tcpeno}} Section 3.4.
 ## Cryptographic Algorithms 
 
 Implementations of this specification MUST implement the following cipher
-suites:
+suite:
 
 ~~~~
     TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 
