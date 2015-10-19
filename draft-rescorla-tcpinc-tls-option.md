@@ -106,6 +106,59 @@ If the TLS handshake fails for non-cryptographic reasons MUST tear
 down the TCP connection and MUST NOT send plaintext data over the
 connection.
 
+# TCP-ENO Binding
+
+## Suboption Definition
+
+TCP-ENO suboption with cs value set to [TBD]. Specifically,
+this means that the SYN contains a 1-byte suboption indicating
+support for this specification.
+
+~~~~
+    bit   7   6   5   4   3   2   1   0
+        +---+---+---+---+---+---+---+---+
+        | 0 |           TBD             |
+        +---+---+---+---+---+---+---+---+
+~~~~
+
+[[OPEN ISSUE: It would be nice to indicate the desire to have
+0-RTT, but that would require a variable length suboption,
+which seems perhaps excessive. Maybe that's the right answer
+anyway.]]
+
+The SYN/ACK can be in one of two forms:
+
+- A 1-byte suboption as in the SYN.
+
+- A variable-length suboption. In this case, the remainder of the
+  option contains a nonce to be used for 0-RTT (see
+  {{zero-rtt-exchange}}. This nonce MUST be globally unique. Servers
+  MUST NOT use this form of
+  the suboption unless explicitly configured (see {{api-considerations}}).
+  [[OPEN ISSUE: I just thought this up recently, so it's possible
+  it's totally half-baked and won't work.]]
+    
+The ACK simply contains the bare TCP-ENO suboption.
+
+## Session ID
+
+TCP-ENO Section 4.1 defines a session ID feature (not to be confused with TLS
+Session IDs). When the protocol in use is TLS, the session ID is computed
+via a TLS Exporter {{RFC5705}} using the Exporter Label [[TBD]] and
+with the "context" input being the TCP-ENO negotiation transcript
+defined in {{I-D.bittau-tcpinc-tcpeno}} Section 3.4.
+
+
+## Channel Close
+
+Because TLS security is provided in the TCP transport stream rather
+than at the segment level, the FIN is not an authenticated indicator
+of end of data. Instead implementations following this specification
+MUST send a TLS close_notify alert prior to sending a FIN and MUST
+raise an error if a FIN or RST is receive prior to receiving a
+close_notify.
+
+
 
 # TLS Profile
 
@@ -128,7 +181,7 @@ MUST implement the profile described in {{tls12-profile}}
 TLS 1.3 is the preferred version of TLS for this specification. In
 order to facilitate implementation, this section provides a
 non-normative description of the parts of TLS 1.3 which are relevant
-to TCPINC and defines a baseline of algorithms and modes
+to TCPINC and defines a normative baseline of algorithms and modes
 which MUST be supported. Other modes, cipher suites, key exchange
 algorithms, certificate formats as defined in 
 {{I-D.ietf-tls-tls13}} MAY also be used and that document
@@ -149,7 +202,7 @@ on Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) key exchange.
 
 * A 0-RTT mode which is used when the client and server have
   connected previous and which allows the client to send data
-  on the first flight (see {{tls-0-rtt}}
+  on the first flight (see {{tls-0-rtt}})
 
 In both case, the server is expected to have an Elliptic-Curve Digital
 Signature Algorithm (ECDSA) signing key which
@@ -269,7 +322,7 @@ by a subsequent specification.
 
 ##### Sending
 
-The server respond's to the client's first flight with a sequence of
+The server responds to the client's first flight with a sequence of
 messages:
 
 ServerHello [6.3.1.2]
@@ -411,9 +464,19 @@ zero-RTT. Because client authentication is forbidden in TCPINC-uses of
 TLS 1.3 (see {{deprecated-features}}), the only valid value here is
 "early_data", indicating that the client can send data in 0-RTT.
 
-When a ServerConfiguration is available, the client can send an
-EarlyDataIndication extension in its ClientHello and then start
-sending data immediately, as shown below.
+In a future connection, a client MAY send 0-RTT data only if the
+following three conditions obtain:
+
+- It has been specifically configured to do so (see {{api-considerations}}).
+- A ServerConfiguration is available.
+- The server supplied a nonce in its SYN/ACK suboption 
+  [[TODO: Work out how to make this work with TFO if at all.]]
+
+In this case, the client sends an
+EarlyDataIndication extension in its ClientHello and can start
+sending data immediately, as shown below. The client MUST also
+include an ENONonce extension which includes the nonce supplied in
+the server's TCP-ENO suboption.
 
 ~~~
        Client                                               Server
@@ -421,6 +484,7 @@ sending data immediately, as shown below.
        ClientHello
          + ClientKeyShare
          + EarlyDataIndication
+         + ENONonce
        (EncryptedExtensions)
        (Application Data)        -------->
                                                        ServerHello
@@ -441,18 +505,19 @@ sending data immediately, as shown below.
 ~~~
 {: #tls-0-rtt title="Message flow for a zero round trip handshake"}
 
-IMPORTANT NOTE: TLS 1.3 Zero-RTT data is inherently replayable
-(see the note in {{I-D.ietf-tls-tls13}} Section 6.2.2). If only
-passive threat models are relevant, this issue becomes less
-important. However, if applications are performing an external
-channel binding using the session id to prevent active attack, then
-care must be taken to prevent this form of attack. See
-Section 6.2.2 of {{I-D.ietf-tls-tls13}} for more information
-on this topic.
-[[OPEN ISSUE: can we use data from the TCP SYN as anti-replay
-stuff.]]
+IMPORTANT NOTE: TLS 1.3 Zero-RTT does not provide PFS and therefore
+MUST only be used when explicitly configured.
 
 
+#### ENONonce Extension
+
+The ENONonce Extension is used to carry the nonce supplied by the
+server in its ENO suboption, thus providing anti-replay for
+the TLS 0-RTT mode. The body of the TLS extension simply consists
+of the nonce. The server MUST validate that the nonce value in
+the ClientHello matches the nonce it supplied in the SYN/ACK and
+otherwise MUST fail the handshake with a fatal "handshake_failure"
+alert.    
 
 ### Key Schedule
 
@@ -550,43 +615,6 @@ Implementations of this specification SHOULD implement the following cipher suit
 ~~~~
 
 
-# TCP-ENO Binding
-
-## Suboption Definition
-
-The protocol defined in this document uses a minimal one byte
-TCP-ENO suboption with cs value set to [TBD]. Specifically,
-this means that the SYN and SYN/ACK contain the following suboption:
-
-
-~~~~
-    bit   7   6   5   4   3   2   1   0
-        +---+---+---+---+---+---+---+---+
-        | 0 |           TBD             |
-        +---+---+---+---+---+---+---+---+
-~~~~
-
-The ACK simply contains the bare TCP-ENO suboption.
-
-## Session ID
-
-TCP-ENO Section 4.1 defines a session ID feature (not to be confused with TLS
-Session IDs). When the protocol in use is TLS, the session ID is computed
-via a TLS Exporter {{RFC5705}} using the Exporter Label [[TBD]] and
-with the "context" input being the TCP-ENO negotiation transcript
-defined in {{I-D.bittau-tcpinc-tcpeno}} Section 3.4.
-
-
-## Channel Close
-
-Because TLS security is provided in the TCP transport stream rather
-than at the segment level, the FIN is not an authenticated indicator
-of end of data. Instead implementations following this specification
-MUST send a TLS close_notify alert prior to sending a FIN and MUST
-raise an error if a FIN or RST is receive prior to receiving a
-close_notify.
-
-
 # Transport Integrity
 
 The basic operational mode defined by TCP-TLS protects only the
@@ -612,7 +640,12 @@ AO. [[OPEN ISSUE: Is this something we want? Maybe in a separate
 specification.]]
 
 
-# Implementation Options
+# API Considerations
+
+[TODO: Need to define how to configure 0-RTT]
+
+
+# Implementation Considerations
 
 There are two primary implementation options for TCP-TLS:
 
