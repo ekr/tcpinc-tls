@@ -102,7 +102,7 @@ Once the TLS handshake has completed, all application data SHALL be
 sent over that negotiated TLS channel. Application data MUST NOT
 be sent prior to the TLS handshake.
 
-If the TLS handshake fails for non-cryptographic reasons MUST tear
+If the TLS handshake fails, the endpoint MUST tear
 down the TCP connection and MUST NOT send plaintext data over the
 connection.
 
@@ -136,8 +136,9 @@ The SYN/ACK can be in one of two forms:
   MUST NOT use this form of
   the suboption unless explicitly configured (see {{api-considerations}}).
   [[OPEN ISSUE: I just thought this up recently, so it's possible
-  it's totally half-baked and won't work.]]
-    
+  it's totally half-baked and won't work. In particular, am I chewing
+  up too much option space?]]
+
 The ACK simply contains the bare TCP-ENO suboption.
 
 ## Session ID
@@ -145,8 +146,8 @@ The ACK simply contains the bare TCP-ENO suboption.
 TCP-ENO Section 4.1 defines a session ID feature (not to be confused with TLS
 Session IDs). When the protocol in use is TLS, the session ID is computed
 via a TLS Exporter {{RFC5705}} using the Exporter Label [[TBD]] and
-with the "context" input being the TCP-ENO negotiation transcript
-defined in {{I-D.bittau-tcpinc-tcpeno}} Section 3.4.
+without a context value (the TCP-ENO transcript is incorporated via
+the TCPENOTranscript extension).
 
 
 ## Channel Close
@@ -219,7 +220,8 @@ MUST implement the 1-RTT mode and SHOULD implement the 0-RTT mode.
      Client                                               Server
 
      ClientHello
-       + ClientKeyShare        -------->
+       + ClientKeyShare
+       + TCPENOTranscript      ------->
                                                      ServerHello
                                                   ServerKeyShare
                                            {EncryptedExtensions}
@@ -304,6 +306,27 @@ The client MUST also include a ServerCertTypeExtension containing
 type "Raw Public Key" {{RFC7250}}, indicating its willingness to
 accept a raw public key rather than an X.509 certificate in the
 server's Certificate message.
+
+The client MUST include a TCPENOTranscript extension containing the
+TCP-ENO options that were used to negotiate ENO.
+
+
+#### The TCPENOTranscript
+
+TCPENOTranscript TLS Extension is used to carry the TCP ENO negotiation
+transcript. The body of the extension simply includes the TCP-ENO
+negotiation transcript as defined in TCP-ENO Section 3.4.
+
+This serves two purposes:
+
+- It binds the TCP-ENO negotiation into the TLS handshake.
+- In 0-RTT mode (see {{zero-rtt-exchange}}) it allows the
+  server to provide an anti-replay nonce which is then
+  mixed into the TLS handshake.
+  
+The server MUST validate that the TCPENOTranscript extension
+matches the transcript. If not, it MUST fail the handshake
+with a fatal "handshake_failure" exception.
 
 ##### Receiving
 
@@ -469,14 +492,12 @@ following three conditions obtain:
 
 - It has been specifically configured to do so (see {{api-considerations}}).
 - A ServerConfiguration is available.
-- The server supplied a nonce in its SYN/ACK suboption 
+- The server supplied a nonce in its SYN/ACK suboption
   [[TODO: Work out how to make this work with TFO if at all.]]
 
 In this case, the client sends an
 EarlyDataIndication extension in its ClientHello and can start
-sending data immediately, as shown below. The client MUST also
-include an ENONonce extension which includes the nonce supplied in
-the server's TCP-ENO suboption.
+sending data immediately, as shown below.
 
 ~~~
        Client                                               Server
@@ -484,7 +505,7 @@ the server's TCP-ENO suboption.
        ClientHello
          + ClientKeyShare
          + EarlyDataIndication
-         + ENONonce
+         + TCPENOTranscript
        (EncryptedExtensions)
        (Application Data)        -------->
                                                        ServerHello
@@ -508,16 +529,12 @@ the server's TCP-ENO suboption.
 IMPORTANT NOTE: TLS 1.3 Zero-RTT does not provide PFS and therefore
 MUST only be used when explicitly configured.
 
+Note: TLS 1.3 Zero-RTT data is inherently replayable (see the note in
+[I-D.ietf-tls-tls13] Section 6.2.2). However, because the client and
+server have already exchanged data in the *TCP* handshake, this data
+can be used to provide anti-replay for a 0-RTT mode TLS handshake
+via the TCPENOTranscript extension.
 
-#### ENONonce Extension
-
-The ENONonce Extension is used to carry the nonce supplied by the
-server in its ENO suboption, thus providing anti-replay for
-the TLS 0-RTT mode. The body of the TLS extension simply consists
-of the nonce. The server MUST validate that the nonce value in
-the ClientHello matches the nonce it supplied in the SYN/ACK and
-otherwise MUST fail the handshake with a fatal "handshake_failure"
-alert.    
 
 ### Key Schedule
 
@@ -642,8 +659,11 @@ specification.]]
 
 # API Considerations
 
-[TODO: Need to define how to configure 0-RTT]
+Needed here:
 
+- How to configure 0-RTT and send 0-RTT data (some sort of sockopt).
+- When is the session-id available (post-connect() completion).
+- How to indicate that the certificate should be validated.
 
 # Implementation Considerations
 
@@ -711,5 +731,3 @@ unauthenticated RST, then no DoS protection is provided.
 
 --- back
 
-
-# TODO: Fix the 
