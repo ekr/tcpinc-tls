@@ -38,6 +38,7 @@ normative:
 informative:
   RFC5929:
   RFC6919:
+  RFC7301:
   I-D.bittau-tcp-crypt:
   I-D.ietf-tls-falsestart:
 
@@ -72,25 +73,26 @@ If both sides want to do TLS, then a TLS handshake is started and once
 that completes, the data is TLS protected prior to being sent over TCP.
 Otherwise, the application data is sent as usual.
 
+~~~
              Client                                    Server
       
              SYN + TCP-ENO [TLS]->
-                                   <- SYN/ACK + TCP-ENO [ENO]
-             ACK ->
+                                   <- SYN/ACK + TCP-ENO [TLS]
+             ACK + TCP-ENO ->
              <---------------- TLS Handshake --------------->
              <--------- Application Data over TLS ---------->
-             
-                  Figure 1: Negotiating TLS with TCP-TLS
+~~~
+{: #negotiate title "Negotiating TLS with TCP-TLS"}             
       
-      
+~~~      
              Client                                    Server
       
              SYN + TCP-ENO [TLS] ->
                                                    <- SYN/ACK
              ACK ->
              <--------- Application Data over TLS ---------->
-             
-                       Figure 2: Fall back to TCP
+~~~
+{: #fall-back title="Fall back to TCP" }
 
 If use of TLS is negotiated, the data sent over TCP simply is
 TLS data in compliance with TLS 1.2 {{RFC5246}} or TLS 1.3
@@ -100,18 +102,9 @@ Once the TLS handshake has completed, all application data SHALL be
 sent over that negotiated TLS channel. Application data MUST NOT
 be sent prior to the TLS handshake.
 
-If the TLS handshake fails for non-cryptographic reasons such as
-failure to negotiate a compatible cipher or the like, endpoints SHOULD
-behave as if the the TCP-TLS option was not present. This is obviously
-not the conventional behavior for TLS failure, but as the entire idea
-here is to be opportunistic and the attacker can simply suppress the
-TCP-TLS option entirely, this provides the maximum robustness against
-broken intermediaries. If the TLS handshake fails for cryptographic
-reasons that indicate damage to the datastream (e.g., a decryption
-failure or a Finished failure) then the endpoints SHOULD signal a
-connection failure, as this suggests that there is a middlebox
-modifying the data and there is a reasonable chance that the state is
-now corrupted.
+If the TLS handshake fails for non-cryptographic reasons MUST tear
+down the TCP connection and MUST NOT send plaintext data over the
+connection.
 
 
 # TLS Profile
@@ -149,7 +142,7 @@ Section 3.1) and "server" to indicate the "B" role.
 ### Handshake Modes
 
 TLS 1.3 as used in TCPINC supports two handshake modes, both based
-on ECDHE key exchange.
+on Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) key exchange.
 
 * A 1-RTT mode which is used when the client has no information
   about the server's keying material (see {{tls-full}})
@@ -158,9 +151,10 @@ on ECDHE key exchange.
   connected previous and which allows the client to send data
   on the first flight (see {{tls-0-rtt}}
 
-In both case, the server is expected to have an ECDSA signing key which
+In both case, the server is expected to have an Elliptic-Curve Digital
+Signature Algorithm (ECDSA) signing key which
 may either be a freshly-generated key or a long-term key
-(allowing TOFU-style applications). The key need not be
+(allowing Trust-On-First-Use (TOFU) style applications). The key need not be
 associated with any certificate and can simply be a bare key.
 
 Full TLS 1.3 includes support for additional modes based on pre-shared
@@ -264,7 +258,7 @@ Upon receiving the client's ClientHello, the server selects a
 ciphersuite and ECDHE group out of the lists provided by the client
 in the cipher_suites list and the NamedGroup extension. If the client
 supplied an appropriate ClientKeyShare for that group, then the server
-responds with a ServerHello (see {{server-first-flight). Otherwise, it
+responds with a ServerHello (see {{server-first-flight}}). Otherwise, it
 replies with a HelloRetryRequest ({{hello-retry-request}}), indicating
 that the client needs to re-send the ClientHello with an appropriate
 key share; because all TCPINC implementations are required to
@@ -475,7 +469,8 @@ Static Secret (SS): A secret which which is derived from ClientKeyShare
 The handshake is encrypted under keys derived from ES.  The ordinary
 traffic keys are derived from the combination of ES and SS. The 0-RTT
 traffic keys are derived solely from ES and therefore have limited
-forward security. All key derivation is done using HKDF {{RFC5869}}.
+forward security. All key derivation is done using the HKDF key-derivation
+algorithm {{RFC5869}}.
 
 
 ### Record Protection
@@ -496,18 +491,19 @@ a series of TLS Records.
        } TLSCiphertext;
 ~~~~~
 
-Each record is encrypted with an AEAD cipher with the following parameters:
+Each record is encrypted with an Authenticated Encryption with
+Additional Data (AEAD) cipher with the following parameters:
 
-* The AEAD nonce is constructed by generating a per-connection
-  nonce mask of length max(8 bytes, N_MIN) for the AEAD algorithm
-  (see {{RFC5116}} Section 4) and XORing it with the record
-  sequence number (left-padded with zeroed).
+* The AEAD nonce is constructed by generating a per-connection nonce
+  mask of length max(8 bytes, N_MIN) for the AEAD algorithm (N_MIN is
+  the minimum nonce size defined in {{RFC5116}} Section 4) and XORing
+  it with the sequence number of the TLS record (left-padded with zeroes).
 
 * The additional data is the sequence number + the TLS version
   number.
 
 The record data MAY BE padded with zeros to the right. Because the
-content type value is always non-zero, the padding is removed by
+content type byte value is always non-zero, the padding is removed by
 removing bytes from the right until a non-zero byte is encountered.
 
 
@@ -527,16 +523,10 @@ When TLS is used with TCPINC, a number of TLS features MUST NOT
 be used, including:
 
 * TLS certificate-based client authentication
-* Session resumption [????]
+* Session resumption
 
-
-## Session ID
-
-TCP-ENO Section 4.1 defines a session ID feature (not to be confused with TLS
-Session IDs). When the protocol in use is TLS, the session ID is computed
-via a TLS Exporter {{RFC5705}} using the Exporter Label [[TBD]] and
-with the "context" input being the TCP-ENO negotiation transcript
-defined in {{I-D.bittau-tcpinc-tcpeno}} Section 3.4.
+These features have only minimal advantage in this context and
+interfere with offering a reduced profile.
 
 
 ## Cryptographic Algorithms 
@@ -560,9 +550,41 @@ Implementations of this specification SHOULD implement the following cipher suit
 ~~~~
 
 
-# Suboption Definition
+# TCP-ENO Binding
 
-This document uses a one byte TCP-ENO suboption. See {{iana-considerations}}.
+## Suboption Definition
+
+The protocol defined in this document uses a minimal one byte
+TCP-ENO suboption with cs value set to [TBD]. Specifically,
+this means that the SYN and SYN/ACK contain the following suboption:
+
+
+~~~~
+    bit   7   6   5   4   3   2   1   0
+        +---+---+---+---+---+---+---+---+
+        | 0 |           TBD             |
+        +---+---+---+---+---+---+---+---+
+~~~~
+
+The ACK simply contains the bare TCP-ENO suboption.
+
+## Session ID
+
+TCP-ENO Section 4.1 defines a session ID feature (not to be confused with TLS
+Session IDs). When the protocol in use is TLS, the session ID is computed
+via a TLS Exporter {{RFC5705}} using the Exporter Label [[TBD]] and
+with the "context" input being the TCP-ENO negotiation transcript
+defined in {{I-D.bittau-tcpinc-tcpeno}} Section 3.4.
+
+
+## Channel Close
+
+Because TLS security is provided in the TCP transport stream rather
+than at the segment level, the FIN is not an authenticated indicator
+of end of data. Instead implementations following this specification
+MUST send a TLS close_notify alert prior to sending a FIN and MUST
+raise an error if a FIN or RST is receive prior to receiving a
+close_notify.
 
 
 # Transport Integrity
@@ -583,7 +605,9 @@ application receiving bogus data, but it will constitute a DoS on the
 connection.
 
 This attack could be countered by using TCP-TLS in combination
-with TCP-AO {{RFC5925}}, using ALPN to negotiate the use of
+with TCP-AO {{RFC5925}}, using Application-Layer Protocol Negotiation (ALPN)
+{{RFC7301}}
+to negotiate the use of
 AO. [[OPEN ISSUE: Is this something we want? Maybe in a separate
 specification.]]
 
@@ -611,7 +635,7 @@ offer both options.
 # NAT/Firewall considerations
 
 If use of TLS is negotiated, the data sent over TCP simply is TLS data
-in compliance with {{RFC5246}. Thus it is extremely likely to pass
+in compliance with {{RFC5246}}. Thus it is extremely likely to pass
 through NATs, firewalls, etc. The only kind of middlebox that is
 likely to cause a problem is one which does protocol enforcement that
 blocks TLS on arbitrary (non-443) ports but *also* passes unknown TCP
@@ -653,3 +677,6 @@ unauthenticated RST, then no DoS protection is provided.
 
 
 --- back
+
+
+# TODO: Fix the 
