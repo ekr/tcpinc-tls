@@ -180,6 +180,7 @@ MUST implement the 1-RTT mode and SHOULD implement the 0-RTT mode.
                                                    {Certificate}
                                              {CertificateVerify}
                                <--------              {Finished}
+                               <--------      [Application Data]
      {Finished}                -------->
      [Application Data]        <------->      [Application Data]
 
@@ -436,6 +437,7 @@ sending data immediately, as shown below.
                                                      {Certificate}
                                                {CertificateVerify}
                                  <--------              {Finished}
+                                 <--------      [Application Data]
        {Finished}                -------->
 
        [Application Data]        <------->      [Application Data]
