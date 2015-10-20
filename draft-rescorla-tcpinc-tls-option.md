@@ -90,7 +90,7 @@ Otherwise, the application data is sent as usual.
              SYN + TCP-ENO [TLS] ->
                                                    <- SYN/ACK
              ACK ->
-             <--------- Application Data over TLS ---------->
+             <--------- Application Data over TCP ---------->
 ~~~
 {: #fall-back title="Fall back to TCP" }
 
