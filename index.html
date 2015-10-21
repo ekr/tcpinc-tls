@@ -1,0 +1,1050 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head profile="http://www.w3.org/2006/03/hcard http://dublincore.org/documents/2008/08/04/dc-html/">
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+
+  <title>TCP Use TLS Option</title>
+
+  <style type="text/css" title="Xml2Rfc (sans serif)">
+  /*<![CDATA[*/
+	  a {
+	  text-decoration: none;
+	  }
+      /* info code from SantaKlauss at http://www.madaboutstyle.com/tooltip2.html */
+      a.info {
+          /* This is the key. */
+          position: relative;
+          z-index: 24;
+          text-decoration: none;
+      }
+      a.info:hover {
+          z-index: 25;
+          color: #FFF; background-color: #900;
+      }
+      a.info span { display: none; }
+      a.info:hover span.info {
+          /* The span will display just on :hover state. */
+          display: block;
+          position: absolute;
+          font-size: smaller;
+          top: 2em; left: -5em; width: 15em;
+          padding: 2px; border: 1px solid #333;
+          color: #900; background-color: #EEE;
+          text-align: left;
+      }
+	  a.smpl {
+	  color: black;
+	  }
+	  a:hover {
+	  text-decoration: underline;
+	  }
+	  a:active {
+	  text-decoration: underline;
+	  }
+	  address {
+	  margin-top: 1em;
+	  margin-left: 2em;
+	  font-style: normal;
+	  }
+	  body {
+	  color: black;
+	  font-family: verdana, helvetica, arial, sans-serif;
+	  font-size: 10pt;
+	  max-width: 55em;
+	  
+	  }
+	  cite {
+	  font-style: normal;
+	  }
+	  dd {
+	  margin-right: 2em;
+	  }
+	  dl {
+	  margin-left: 2em;
+	  }
+	
+	  ul.empty {
+	  list-style-type: none;
+	  }
+	  ul.empty li {
+	  margin-top: .5em;
+	  }
+	  dl p {
+	  margin-left: 0em;
+	  }
+	  dt {
+	  margin-top: .5em;
+	  }
+	  h1 {
+	  font-size: 14pt;
+	  line-height: 21pt;
+	  page-break-after: avoid;
+	  }
+	  h1.np {
+	  page-break-before: always;
+	  }
+	  h1 a {
+	  color: #333333;
+	  }
+	  h2 {
+	  font-size: 12pt;
+	  line-height: 15pt;
+	  page-break-after: avoid;
+	  }
+	  h3, h4, h5, h6 {
+	  font-size: 10pt;
+	  page-break-after: avoid;
+	  }
+	  h2 a, h3 a, h4 a, h5 a, h6 a {
+	  color: black;
+	  }
+	  img {
+	  margin-left: 3em;
+	  }
+	  li {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  ol {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  ol p {
+	  margin-left: 0em;
+	  }
+	  p {
+	  margin-left: 2em;
+	  margin-right: 2em;
+	  }
+	  pre {
+	  margin-left: 3em;
+	  background-color: lightyellow;
+	  padding: .25em;
+	  }
+	  pre.text2 {
+	  border-style: dotted;
+	  border-width: 1px;
+	  background-color: #f0f0f0;
+	  width: 69em;
+	  }
+	  pre.inline {
+	  background-color: white;
+	  padding: 0em;
+	  }
+	  pre.text {
+	  border-style: dotted;
+	  border-width: 1px;
+	  background-color: #f8f8f8;
+	  width: 69em;
+	  }
+	  pre.drawing {
+	  border-style: solid;
+	  border-width: 1px;
+	  background-color: #f8f8f8;
+	  padding: 2em;
+	  }
+	  table {
+	  margin-left: 2em;
+	  }
+	  table.tt {
+	  vertical-align: top;
+	  }
+	  table.full {
+	  border-style: outset;
+	  border-width: 1px;
+	  }
+	  table.headers {
+	  border-style: outset;
+	  border-width: 1px;
+	  }
+	  table.tt td {
+	  vertical-align: top;
+	  }
+	  table.full td {
+	  border-style: inset;
+	  border-width: 1px;
+	  }
+	  table.tt th {
+	  vertical-align: top;
+	  }
+	  table.full th {
+	  border-style: inset;
+	  border-width: 1px;
+	  }
+	  table.headers th {
+	  border-style: none none inset none;
+	  border-width: 1px;
+	  }
+	  table.left {
+	  margin-right: auto;
+	  }
+	  table.right {
+	  margin-left: auto;
+	  }
+	  table.center {
+	  margin-left: auto;
+	  margin-right: auto;
+	  }
+	  caption {
+	  caption-side: bottom;
+	  font-weight: bold;
+	  font-size: 9pt;
+	  margin-top: .5em;
+	  }
+	
+	  table.header {
+	  border-spacing: 1px;
+	  width: 95%;
+	  font-size: 10pt;
+	  color: white;
+	  }
+	  td.top {
+	  vertical-align: top;
+	  }
+	  td.topnowrap {
+	  vertical-align: top;
+	  white-space: nowrap; 
+	  }
+	  table.header td {
+	  background-color: gray;
+	  width: 50%;
+	  }
+	  table.header a {
+	  color: white;
+	  }
+	  td.reference {
+	  vertical-align: top;
+	  white-space: nowrap;
+	  padding-right: 1em;
+	  }
+	  thead {
+	  display:table-header-group;
+	  }
+	  ul.toc, ul.toc ul {
+	  list-style: none;
+	  margin-left: 1.5em;
+	  margin-right: 0em;
+	  padding-left: 0em;
+	  }
+	  ul.toc li {
+	  line-height: 150%;
+	  font-weight: bold;
+	  font-size: 10pt;
+	  margin-left: 0em;
+	  margin-right: 0em;
+	  }
+	  ul.toc li li {
+	  line-height: normal;
+	  font-weight: normal;
+	  font-size: 9pt;
+	  margin-left: 0em;
+	  margin-right: 0em;
+	  }
+	  li.excluded {
+	  font-size: 0pt;
+	  }
+	  ul p {
+	  margin-left: 0em;
+	  }
+	
+	  .comment {
+	  background-color: yellow;
+	  }
+	  .center {
+	  text-align: center;
+	  }
+	  .error {
+	  color: red;
+	  font-style: italic;
+	  font-weight: bold;
+	  }
+	  .figure {
+	  font-weight: bold;
+	  text-align: center;
+	  font-size: 9pt;
+	  }
+	  .filename {
+	  color: #333333;
+	  font-weight: bold;
+	  font-size: 12pt;
+	  line-height: 21pt;
+	  text-align: center;
+	  }
+	  .fn {
+	  font-weight: bold;
+	  }
+	  .hidden {
+	  display: none;
+	  }
+	  .left {
+	  text-align: left;
+	  }
+	  .right {
+	  text-align: right;
+	  }
+	  .title {
+	  color: #990000;
+	  font-size: 18pt;
+	  line-height: 18pt;
+	  font-weight: bold;
+	  text-align: center;
+	  margin-top: 36pt;
+	  }
+	  .vcardline {
+	  display: block;
+	  }
+	  .warning {
+	  font-size: 14pt;
+	  background-color: yellow;
+	  }
+	
+	
+	  @media print {
+	  .noprint {
+		display: none;
+	  }
+	
+	  a {
+		color: black;
+		text-decoration: none;
+	  }
+	
+	  table.header {
+		width: 90%;
+	  }
+	
+	  td.header {
+		width: 50%;
+		color: black;
+		background-color: white;
+		vertical-align: top;
+		font-size: 12pt;
+	  }
+	
+	  ul.toc a::after {
+		content: leader('.') target-counter(attr(href), page);
+	  }
+	
+	  ul.ind li li a {
+		content: target-counter(attr(href), page);
+	  }
+	
+	  .print2col {
+		column-count: 2;
+		-moz-column-count: 2;
+		column-fill: auto;
+	  }
+	  }
+	
+	  @page {
+	  @top-left {
+		   content: "Internet-Draft"; 
+	  } 
+	  @top-right {
+		   content: "December 2010"; 
+	  } 
+	  @top-center {
+		   content: "Abbreviated Title";
+	  } 
+	  @bottom-left {
+		   content: "Doe"; 
+	  } 
+	  @bottom-center {
+		   content: "Expires June 2011"; 
+	  } 
+	  @bottom-right {
+		   content: "[Page " counter(page) "]"; 
+	  } 
+	  }
+	
+	  @page:first { 
+		@top-left {
+		  content: normal;
+		}
+		@top-right {
+		  content: normal;
+		}
+		@top-center {
+		  content: normal;
+		}
+	  }
+  /*]]>*/
+  </style>
+<style type="text/css">
+@viewport {
+  zoom: 1.0;
+  width: extend-to-zoom;
+}
+
+@-ms-viewport {
+  width: extend-to-zoom;
+  zoom: 1.0;
+}
+
+body {
+  font: 11pt cambria, helvetica, arial, sans-serif;
+  font-size-adjust: 0.5;
+  line-height: 130%;
+  margin: 1em auto;
+  max-width: 700px;
+}
+
+.title, .filename, h1, h2, h3, h4 {
+  font-family: candara, helvetica, arial, sans-serif;
+  font-size-adjust: 0.5;
+}
+.title { font-size: 150%; }
+h1 { font-size: 130%; }
+h2 { font-size: 120%; }
+h3, h4 { font-size: 110%; }
+ul.toc >li { font-size: 95%; }
+ul.toc >li >ul, .figure, caption { font-size: 90%; }
+
+table {
+  margin-left: 0em;
+}
+table.header {
+  width: 100%;
+}
+
+table.header td {
+  background-color: inherit;
+  color: black;
+}
+
+samp, tt, code, pre {
+  font: 11pt consolas, monospace;
+  font-size-adjust: none;
+}
+
+pre.text, pre.text2 {
+  width: 90%;
+}
+
+dt {
+  float: left; clear: left;
+  margin: 0.5em 0.5em 0 0;
+}
+dt:first-child {
+  margin-top: 0;
+}
+dd {
+  margin: 0.5em 0 0 2em;
+}
+dd p, dd ul {
+  margin-top: 0; margin-bottom: 0;
+}
+dd *+p {
+  margin-top: 0.5em;
+}
+
+ol, ul {
+  padding: 0;
+  margin: 0.5em 0 0.5em 2em;
+}
+ul.toc, ul.toc ul { 
+  margin: 0 0 0 1.5em;
+}
+ul.toc a:first-child { 
+  display: inline-block; 
+  min-width: 1.2em;
+}</style>
+
+  <link href="#rfc.toc" rel="Contents"/>
+<link href="#rfc.section.1" rel="Chapter" title="1 Introduction"/>
+<link href="#rfc.section.2" rel="Chapter" title="2 Overview"/>
+<link href="#rfc.section.3" rel="Chapter" title="3 TCP-ENO Binding"/>
+<link href="#rfc.section.3.1" rel="Chapter" title="3.1 Suboption Definition"/>
+<link href="#rfc.section.3.2" rel="Chapter" title="3.2 Session ID"/>
+<link href="#rfc.section.3.3" rel="Chapter" title="3.3 Channel Close"/>
+<link href="#rfc.section.4" rel="Chapter" title="4 TLS Profile"/>
+<link href="#rfc.section.4.1" rel="Chapter" title="4.1 TLS 1.3 Profile"/>
+<link href="#rfc.section.4.1.1" rel="Chapter" title="4.1.1 Handshake Modes"/>
+<link href="#rfc.section.4.1.2" rel="Chapter" title="4.1.2 Basic 1-RTT Handshake"/>
+<link href="#rfc.section.4.1.3" rel="Chapter" title="4.1.3 Hello Retry Request [6.3.1.3]"/>
+<link href="#rfc.section.4.1.4" rel="Chapter" title="4.1.4 Zero-RTT Exchange"/>
+<link href="#rfc.section.4.1.5" rel="Chapter" title="4.1.5 Key Schedule"/>
+<link href="#rfc.section.4.1.6" rel="Chapter" title="4.1.6 Record Protection"/>
+<link href="#rfc.section.4.2" rel="Chapter" title="4.2 TLS 1.2 Profile"/>
+<link href="#rfc.section.4.3" rel="Chapter" title="4.3 Deprecated Features"/>
+<link href="#rfc.section.4.4" rel="Chapter" title="4.4 Cryptographic Algorithms"/>
+<link href="#rfc.section.5" rel="Chapter" title="5 Transport Integrity"/>
+<link href="#rfc.section.6" rel="Chapter" title="6 API Considerations"/>
+<link href="#rfc.section.7" rel="Chapter" title="7 Implementation Considerations"/>
+<link href="#rfc.section.8" rel="Chapter" title="8 NAT/Firewall considerations"/>
+<link href="#rfc.section.9" rel="Chapter" title="9 IANA Considerations"/>
+<link href="#rfc.section.10" rel="Chapter" title="10 Security Considerations"/>
+<link href="#rfc.references" rel="Chapter" title="11 References"/>
+<link href="#rfc.references.1" rel="Chapter" title="11.1 Normative References"/>
+<link href="#rfc.references.2" rel="Chapter" title="11.2 Informative References"/>
+
+
+  <meta name="generator" content="xml2rfc version 2.4.8 - http://tools.ietf.org/tools/xml2rfc" />
+  <link rel="schema.dct" href="http://purl.org/dc/terms/" />
+
+  <meta name="dct.creator" content="Rescorla, E." />
+  <meta name="dct.identifier" content="urn:ietf:id:draft-rescorla-tcpinc-tls-option-latest" />
+  <meta name="dct.issued" scheme="ISO8601" content="2015-10-21" />
+  <meta name="dct.abstract" content="This document defines the use of TLS " />
+  <meta name="description" content="This document defines the use of TLS " />
+
+</head>
+
+<body>
+
+  <table class="header">
+    <tbody>
+    
+    	<tr>
+  <td class="left">TCPING</td>
+  <td class="right">E. Rescorla</td>
+</tr>
+<tr>
+  <td class="left">Internet-Draft</td>
+  <td class="right">Mozilla</td>
+</tr>
+<tr>
+  <td class="left">Intended status: Standards Track</td>
+  <td class="right">October 21, 2015</td>
+</tr>
+<tr>
+  <td class="left">Expires: April 23, 2016</td>
+  <td class="right"></td>
+</tr>
+
+    	
+    </tbody>
+  </table>
+
+  <p class="title">TCP Use TLS Option<br />
+  <span class="filename">draft-rescorla-tcpinc-tls-option-latest</span></p>
+  
+  <h1 id="rfc.abstract">
+  <a href="#rfc.abstract">Abstract</a>
+</h1>
+<p>This document defines the use of TLS <a href="#RFC5246">[RFC5246]</a> with the TCP-ENO option <a href="#I-D.bittau-tcpinc-tcpeno">[I-D.bittau-tcpinc-tcpeno]</a>.</p>
+<h1 id="rfc.status">
+  <a href="#rfc.status">Status of This Memo</a>
+</h1>
+<p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
+<p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at http://datatracker.ietf.org/drafts/current/.</p>
+<p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
+<p>This Internet-Draft will expire on April 23, 2016.</p>
+<h1 id="rfc.copyrightnotice">
+  <a href="#rfc.copyrightnotice">Copyright Notice</a>
+</h1>
+<p>Copyright (c) 2015 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
+<p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (http://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
+
+  
+  <hr class="noprint" />
+  <h1 class="np" id="rfc.toc"><a href="#rfc.toc">Table of Contents</a></h1>
+  <ul class="toc">
+
+  	<li>1.   <a href="#rfc.section.1">Introduction</a></li>
+<li>2.   <a href="#rfc.section.2">Overview</a></li>
+<li>3.   <a href="#rfc.section.3">TCP-ENO Binding</a></li>
+<li>3.1.   <a href="#rfc.section.3.1">Suboption Definition</a></li>
+<li>3.2.   <a href="#rfc.section.3.2">Session ID</a></li>
+<li>3.3.   <a href="#rfc.section.3.3">Channel Close</a></li>
+<li>4.   <a href="#rfc.section.4">TLS Profile</a></li>
+<li>4.1.   <a href="#rfc.section.4.1">TLS 1.3 Profile</a></li>
+<li>4.1.1.   <a href="#rfc.section.4.1.1">Handshake Modes</a></li>
+<li>4.1.2.   <a href="#rfc.section.4.1.2">Basic 1-RTT Handshake</a></li>
+<li>4.1.3.   <a href="#rfc.section.4.1.3">Hello Retry Request [6.3.1.3]</a></li>
+<li>4.1.4.   <a href="#rfc.section.4.1.4">Zero-RTT Exchange</a></li>
+<li>4.1.5.   <a href="#rfc.section.4.1.5">Key Schedule</a></li>
+<li>4.1.6.   <a href="#rfc.section.4.1.6">Record Protection</a></li>
+<li>4.2.   <a href="#rfc.section.4.2">TLS 1.2 Profile</a></li>
+<li>4.3.   <a href="#rfc.section.4.3">Deprecated Features</a></li>
+<li>4.4.   <a href="#rfc.section.4.4">Cryptographic Algorithms</a></li>
+<li>5.   <a href="#rfc.section.5">Transport Integrity</a></li>
+<li>6.   <a href="#rfc.section.6">API Considerations</a></li>
+<li>7.   <a href="#rfc.section.7">Implementation Considerations</a></li>
+<li>8.   <a href="#rfc.section.8">NAT/Firewall considerations</a></li>
+<li>9.   <a href="#rfc.section.9">IANA Considerations</a></li>
+<li>10.   <a href="#rfc.section.10">Security Considerations</a></li>
+<li>11.   <a href="#rfc.references">References</a></li>
+<li>11.1.   <a href="#rfc.references.1">Normative References</a></li>
+<li>11.2.   <a href="#rfc.references.2">Informative References</a></li>
+
+
+  </ul>
+
+  <h1 id="rfc.section.1"><a href="#rfc.section.1">1.</a> <a href="#introduction" id="introduction">Introduction</a></h1>
+<p id="rfc.section.1.p.1">RFC EDITOR: PLEASE REMOVE THE FOLLOWING PARAGRAPH The source for this draft is maintained in GitHub.  Suggested changes should be submitted as pull requests at https://github.com/ekr/tcpinc-tls.  Instructions are on that page as well.</p>
+<p id="rfc.section.1.p.2">The TCPINC WG is chartered to define protocols to provide ubiquitous, transparent security for TCP connections. The WG is specifying The TCP Encryption Negotiation Option (TCP-ENO) <a href="#I-D.bittau-tcpinc-tcpeno">[I-D.bittau-tcpinc-tcpeno]</a> which allows for negotiation of encryption at the TCP layer. This document describes a binding of TLS <a href="#RFC5246">[RFC5246]</a> to TCP-ENO as what ENO calls an &#8220;encryption spec&#8221;, thus allowing TCP-ENO to negotiate TLS.</p>
+<h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#overview" id="overview">Overview</a></h1>
+<p id="rfc.section.2.p.1">The basic idea behind this draft is simple. The SYN and SYN/ACK messages carry the TCP-ENO options indicating the willingness to do TLS.  If both sides want to do TLS, then a TLS handshake is started and once that completes, the data is TLS protected prior to being sent over TCP.  Otherwise, the application data is sent as usual.</p>
+<div id="rfc.figure.1"/>
+<div id="negotiate"/>
+<pre>
+             Client                                    Server
+      
+             SYN + TCP-ENO [TLS]-&gt;
+                                   &lt;- SYN/ACK + TCP-ENO [TLS]
+             ACK + TCP-ENO -&gt;
+             &lt;---------------- TLS Handshake ---------------&gt;
+             &lt;--------- Application Data over TLS ----------&gt;
+</pre>
+<p class="figure">Figure 1</p>
+<div id="rfc.figure.2"/>
+<div id="fall-back"/>
+<pre>
+             Client                                    Server
+      
+             SYN + TCP-ENO [TLS] -&gt;
+                                                   &lt;- SYN/ACK
+             ACK -&gt;
+             &lt;--------- Application Data over TCP ----------&gt;
+</pre>
+<p class="figure">Figure 2: Fall back to TCP</p>
+<p id="rfc.section.2.p.2">If use of TLS is negotiated, the data sent over TCP simply is TLS data in compliance with TLS 1.2 <a href="#RFC5246">[RFC5246]</a> or TLS 1.3 <a href="#I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</a>.</p>
+<p id="rfc.section.2.p.3">Once the TLS handshake has completed, all application data SHALL be sent over that negotiated TLS channel. Application data MUST NOT be sent prior to the TLS handshake.</p>
+<p id="rfc.section.2.p.4">If the TLS handshake fails, the endpoint MUST tear down the TCP connection and MUST NOT send plaintext data over the connection.</p>
+<h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#tcp-eno-binding" id="tcp-eno-binding">TCP-ENO Binding</a></h1>
+<h1 id="rfc.section.3.1"><a href="#rfc.section.3.1">3.1.</a> <a href="#suboption-definition" id="suboption-definition">Suboption Definition</a></h1>
+<p id="rfc.section.3.1.p.1">TCP-ENO suboption with cs value set to [TBD]. Specifically, this means that the SYN contains a 1-byte suboption indicating support for this specification.</p>
+<pre>
+    bit   7   6   5   4   3   2   1   0
+        +---+---+---+---+---+---+---+---+
+        | 0 |           TBD             |
+        +---+---+---+---+---+---+---+---+
+</pre>
+<p id="rfc.section.3.1.p.2">[[OPEN ISSUE: It would be nice to indicate the desire to have 0-RTT, but that would require a variable length suboption, which seems perhaps excessive. Maybe that&#8217;s the right answer anyway.]]</p>
+<p id="rfc.section.3.1.p.3">The SYN/ACK can be in one of two forms:</p>
+<p/>
+
+<ul>
+  <li>A 1-byte suboption as in the SYN.</li>
+  <li>A variable-length suboption. In this case, the remainder of the option contains a nonce to be used for 0-RTT (see <a href="#zero-rtt-exchange">Section 4.1.4</a>. This nonce MUST be globally unique. Servers MUST NOT use this form of the suboption unless explicitly configured (see <a href="#api-considerations">Section 6</a>).  [[OPEN ISSUE: I just thought this up recently, so it&#8217;s possible it&#8217;s totally half-baked and won&#8217;t work. In particular, am I chewing up too much option space?]]</li>
+</ul>
+<p id="rfc.section.3.1.p.5">The ACK simply contains the bare TCP-ENO suboption.</p>
+<h1 id="rfc.section.3.2"><a href="#rfc.section.3.2">3.2.</a> <a href="#session-id" id="session-id">Session ID</a></h1>
+<p id="rfc.section.3.2.p.1">TCP-ENO Section 4.1 defines a session ID feature (not to be confused with TLS Session IDs). When the protocol in use is TLS, the session ID is computed via a TLS Exporter <a href="#RFC5705">[RFC5705]</a> using the Exporter Label [[TBD]] and without a context value (the TCP-ENO transcript is incorporated via the TCPENOTranscript extension).</p>
+<h1 id="rfc.section.3.3"><a href="#rfc.section.3.3">3.3.</a> <a href="#channel-close" id="channel-close">Channel Close</a></h1>
+<p id="rfc.section.3.3.p.1">Because TLS security is provided in the TCP transport stream rather than at the segment level, the FIN is not an authenticated indicator of end of data. Instead implementations following this specification MUST send a TLS close_notify alert prior to sending a FIN and MUST raise an error if a FIN or RST is receive prior to receiving a close_notify.</p>
+<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#tls-profile" id="tls-profile">TLS Profile</a></h1>
+<p id="rfc.section.4.p.1">The TLS Profile defined in this document is intended to be a compromise between two separate use cases. For the straight TCPINC use case of ubiquitous transport encryption, we desire that implementations solely implement TLS 1.3 <a href="#I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</a> or greater. However, we also want to allow the use of TCP-ENO as a signal for applications to do out-of-band negotiation of TLS, and those applications are likely to already have support for TLS 1.2 <a href="#RFC5246">[RFC5246]</a>. In order to accomodate both cases, we specify a wire encoding that allows for negotiation of multiple TLS versions (<a href="#suboption-definition">Section 3.1</a>) but encourage implementations to implement only TLS 1.3. Implementations which also implement TLS 1.2 MUST implement the profile described in <a href="#tls12-profile">Section 4.2</a></p>
+<h1 id="rfc.section.4.1"><a href="#rfc.section.4.1">4.1.</a> <a href="#tls13-profile" id="tls13-profile">TLS 1.3 Profile</a></h1>
+<p id="rfc.section.4.1.p.1">TLS 1.3 is the preferred version of TLS for this specification. In order to facilitate implementation, this section provides a non-normative description of the parts of TLS 1.3 which are relevant to TCPINC and defines a normative baseline of algorithms and modes which MUST be supported. Other modes, cipher suites, key exchange algorithms, certificate formats as defined in <a href="#I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</a> MAY also be used and that document remains the normative reference for TLS 1.3. Bracketed references (e.g., [S. 1.2.3.4] refer to the corresponding section in that document.) In order to match TLS terminology, we use the term &#8220;client&#8221; to indicate the TCP-ENO &#8220;A&#8221; role (See <a href="#I-D.bittau-tcpinc-tcpeno">[I-D.bittau-tcpinc-tcpeno]</a>; Section 3.1) and &#8220;server&#8221; to indicate the &#8220;B&#8221; role.</p>
+<h1 id="rfc.section.4.1.1"><a href="#rfc.section.4.1.1">4.1.1.</a> <a href="#handshake-modes" id="handshake-modes">Handshake Modes</a></h1>
+<p id="rfc.section.4.1.1.p.1">TLS 1.3 as used in TCPINC supports two handshake modes, both based on Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) key exchange.</p>
+<p/>
+
+<ul>
+  <li>A 1-RTT mode which is used when the client has no information about the server&#8217;s keying material (see <a href="#tls-full">Figure 3</a>)</li>
+  <li>A 0-RTT mode which is used when the client and server have connected previous and which allows the client to send data on the first flight (see <a href="#tls-0-rtt">Figure 4</a>)</li>
+</ul>
+<p id="rfc.section.4.1.1.p.3">In both case, the server is expected to have an Elliptic-Curve Digital Signature Algorithm (ECDSA) signing key which may either be a freshly-generated key or a long-term key (allowing Trust-On-First-Use (TOFU) style applications). The key need not be associated with any certificate and can simply be a bare key.</p>
+<p id="rfc.section.4.1.1.p.4">Full TLS 1.3 includes support for additional modes based on pre-shared keys, but TCPINC implementations MAY opt to omit them. Implementations MUST implement the 1-RTT mode and SHOULD implement the 0-RTT mode.</p>
+<div id="rfc.figure.3"/>
+<div id="tls-full"/>
+<pre>
+     Client                                               Server
+
+     ClientHello
+       + ClientKeyShare
+       + TCPENOTranscript      -------&gt;
+                                                     ServerHello
+                                                  ServerKeyShare
+                                           {EncryptedExtensions}
+                                          {ServerConfiguration*}
+                                                   {Certificate}
+                                             {CertificateVerify}
+                               &lt;--------              {Finished}
+                               &lt;--------      [Application Data]
+     {Finished}                --------&gt;
+     [Application Data]        &lt;-------&gt;      [Application Data]
+
+            *  Indicates optional or situation-dependent
+               messages that are not always sent.
+
+            {} Indicates messages protected using keys
+               derived from the ephemeral secret.
+
+            [] Indicates messages protected using keys
+               derived from the master secret.
+</pre>
+<p class="figure">Figure 3: Message flow for full TLS Handshake</p>
+<p id="rfc.section.4.1.1.p.5">Note: Although these diagrams indicate a message called &#8220;Certificate&#8221;, this message MAY either contain a bare public key or an X.509 certificate (this is intended to support the out-of-band use case indicated above). Implementations MUST support bare public keys and MAY support X.509 certificates.</p>
+<h1 id="rfc.section.4.1.2"><a href="#rfc.section.4.1.2">4.1.2.</a> <a href="#basic-1-rtt-handshake" id="basic-1-rtt-handshake">Basic 1-RTT Handshake</a></h1>
+<h1 id="rfc.section.4.1.2.1"><a href="#rfc.section.4.1.2.1">4.1.2.1.</a> <a href="#clients-first-flight" id="clients-first-flight">Client&#8217;s First Flight</a></h1>
+<h1 id="rfc.section.4.1.2.1.1"><a href="#rfc.section.4.1.2.1.1">4.1.2.1.1.</a> <a href="#client-first-flight-sending" id="client-first-flight-sending">Sending</a></h1>
+<p id="rfc.section.4.1.2.1.1.p.1">In order to initiate the TLS handshake, the client sends a &#8220;ClientHello&#8221; message [S. 6.3.1.1].</p>
+<pre>
+       struct {
+           ProtocolVersion client_version = { 3, 4 };    /* TLS v1.3 */
+           Random random;
+           uint8 session_id_len_RESERVED;                /* Must be zero */
+           CipherSuite cipher_suites&lt;2..2^16-2&gt;;
+           uint8 compression_methods_len_RESERVED;       /* Must be zero */
+           Extension extensions&lt;0..2^16-1&gt;;
+       } ClientHello;
+</pre>
+<p id="rfc.section.4.1.2.1.1.p.2">The fields listed here have the following meanings:</p>
+<p/>
+
+<dl>
+  <dt>client_version</dt>
+  <dd style="margin-left: 8"><br/> The version of the TLS protocol by which the client wishes to communicate during this session.</dd>
+  <dt>random</dt>
+  <dd style="margin-left: 8"><br/> A 32-byte random nonce.</dd>
+  <dt>cipher_suites</dt>
+  <dd style="margin-left: 8"><br/> This is a list of the cryptographic options supported by the client, with the client&#8217;s first preference first.</dd>
+</dl>
+<p id="rfc.section.4.1.2.1.1.p.4">extensions contains a set of extension fields. The client MUST include the following extensions:</p>
+<p/>
+
+<dl>
+  <dt>SignatureAlgorithms [S. 6.3.2.1]</dt>
+  <dd style="margin-left: 8"><br/> A list of signature/hash algorithm pairs the client supports.</dd>
+  <dt>NamedGroup [S. 6.3.2.2]</dt>
+  <dd style="margin-left: 8"><br/> A list of ECDHE groups that the client supports</dd>
+  <dt>ClientKeyShare [S. 6.3.2.3]</dt>
+  <dd style="margin-left: 8"><br/> Zero or more ECDHE shares drawn from the groups in NamedGroup.  This SHOULD contain either a P-256 key or an X25519 key.</dd>
+</dl>
+<p id="rfc.section.4.1.2.1.1.p.6">The client MUST also include a ServerCertTypeExtension containing type &#8220;Raw Public Key&#8221; <a href="#RFC7250">[RFC7250]</a>, indicating its willingness to accept a raw public key rather than an X.509 certificate in the server&#8217;s Certificate message.</p>
+<p id="rfc.section.4.1.2.1.1.p.7">The client MUST include a TCPENOTranscript extension containing the TCP-ENO options that were used to negotiate ENO.</p>
+<h1 id="rfc.section.4.1.2.2"><a href="#rfc.section.4.1.2.2">4.1.2.2.</a> <a href="#the-tcpenotranscript" id="the-tcpenotranscript">The TCPENOTranscript</a></h1>
+<p id="rfc.section.4.1.2.2.p.1">TCPENOTranscript TLS Extension is used to carry the TCP ENO negotiation transcript. The body of the extension simply includes the TCP-ENO negotiation transcript as defined in TCP-ENO Section 3.4.</p>
+<p id="rfc.section.4.1.2.2.p.2">This serves two purposes:</p>
+<p/>
+
+<ul>
+  <li>It binds the TCP-ENO negotiation into the TLS handshake.</li>
+  <li>In 0-RTT mode (see <a href="#zero-rtt-exchange">Section 4.1.4</a>) it allows the server to provide an anti-replay nonce which is then mixed into the TLS handshake.</li>
+</ul>
+<p id="rfc.section.4.1.2.2.p.4">The server MUST validate that the TCPENOTranscript extension matches the transcript. If not, it MUST fail the handshake with a fatal &#8220;handshake_failure&#8221; exception.</p>
+<h1 id="rfc.section.4.1.2.2.1"><a href="#rfc.section.4.1.2.2.1">4.1.2.2.1.</a> <a href="#receiving" id="receiving">Receiving</a></h1>
+<p id="rfc.section.4.1.2.2.1.p.1">Upon receiving the client&#8217;s ClientHello, the server selects a ciphersuite and ECDHE group out of the lists provided by the client in the cipher_suites list and the NamedGroup extension. If the client supplied an appropriate ClientKeyShare for that group, then the server responds with a ServerHello (see <a href="#server-first-flight">Section 4.1.2.3</a>). Otherwise, it replies with a HelloRetryRequest (<a href="#hello-retry-request">Section 4.1.3</a>), indicating that the client needs to re-send the ClientHello with an appropriate key share; because all TCPINC implementations are required to support P-256, this should not happen unless P-256 is deprecated by a subsequent specification.</p>
+<h1 id="rfc.section.4.1.2.3"><a href="#rfc.section.4.1.2.3">4.1.2.3.</a> <a href="#server-first-flight" id="server-first-flight">Server&#8217;s First Flight</a></h1>
+<h1 id="rfc.section.4.1.2.3.1"><a href="#rfc.section.4.1.2.3.1">4.1.2.3.1.</a> <a href="#sending" id="sending">Sending</a></h1>
+<p id="rfc.section.4.1.2.3.1.p.1">The server responds to the client&#8217;s first flight with a sequence of messages:</p>
+<p/>
+
+<dl>
+  <dt>ServerHello [6.3.1.2]</dt>
+  <dd style="margin-left: 8"><br/> Contains a nonce and the cipher suite that the server has selected out of the client&#8217;s list. The server MUST support the extensions listed in <a href="#client-first-flight-sending">Section 4.1.2.1.1</a> and MUST also ignore any extensions it does not recognize; this implies that the server can implement solely the extensions listed in <a href="#client-first-flight-sending">Section 4.1.2.1.1</a>.</dd>
+  <dt>ServerKeyShare [6.3.3]</dt>
+  <dd style="margin-left: 8"><br/> Contains the server&#8217;s ECDHE share for one of the groups offered in the client&#8217;s ClientKeyShare message. All messages after ServerKeyShare are encrypted using keys derived from the ClientKeyShare and ServerKeyShare.</dd>
+  <dt>EncryptedExtensions [6.3.4]</dt>
+  <dd style="margin-left: 8"><br/> Responses to the extensions offered by the client. In this case, the only relevant extension is the ServerCertTypeExtension.</dd>
+  <dt>Certificate [6.3.5]</dt>
+  <dd style="margin-left: 8"><br/> The server&#8217;s certificate. If the client offered a &#8220;Raw Public Key&#8221; type in ServerCertTypeExtension this message SHALL contain a SubjectPublicKeyInfo value for the server&#8217;s key as specified in <a href="#RFC7250">[RFC7250]</a>.  Otherwise, it SHALL contain one or more X.509 Certificates, as specified in <a href="#I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</a>, Section 6.3.5. In either case, this message MUST contain a key which is consistent with the client&#8217;s SignatureAlgorithms and NamedGroup extensions.</dd>
+  <dt>ServerConfiguration [6.3.7]</dt>
+  <dd style="margin-left: 8"><br/> A server configuration value for use in 0-RTT (see <a href="#zero-rtt-exchange">Section 4.1.4</a>).</dd>
+  <dt>CertificateVerify [6.3.8]</dt>
+  <dd style="margin-left: 8"><br/> A signature over the handshake transcript using the key provided in the certificate message.</dd>
+  <dt>Finished [6.3.9]</dt>
+  <dd style="margin-left: 8"><br/> A MAC over the entire handshake transcript up to this point.</dd>
+</dl>
+<p id="rfc.section.4.1.2.3.1.p.3">Once the server has sent the Finished message, it can immediately generate the application traffic keys and start sending application traffic to the client.</p>
+<h1 id="rfc.section.4.1.2.4"><a href="#rfc.section.4.1.2.4">4.1.2.4.</a> <a href="#receiving-1" id="receiving-1">Receiving</a></h1>
+<p id="rfc.section.4.1.2.4.p.1">Upon receiving the server&#8217;s first flight, the client proceeds as follows:</p>
+<p/>
+
+<ul>
+  <li>Read the ServerHello message to determine the cryptographic parameters.</li>
+  <li>Read the ServerKeyShare message and use that in combination with the ClientKeyShare to compute the keys which are used to encrypt the rest of the handshake.</li>
+  <li>Read the EncryptedExtensions message. As noted above, the main extension which needs to be processed is ServerCertTypeExtension, which indicates the format of the server&#8217;s certificate message.</li>
+  <li>Read the server&#8217;s certificate message and store the server&#8217;s public key.  Unless the implementation is specifically configured otherwise, it SHOULD NOT attempt to validate the certificate, even if it is of type X.509 but merely extract the key.</li>
+  <li>Read the server&#8217;s CertificateVerify message and verify the server&#8217;s signature over the handshake transcript. If the signature does not verify, the client terminates the handshake with an alert (Section 6.1.2).</li>
+  <li>Read the server&#8217;s Finished message and verify the finished MAC based on the DH shared secret. If the MAC does not verify, the client terminates the handshake with an alert.</li>
+</ul>
+<h1 id="rfc.section.4.1.2.5"><a href="#rfc.section.4.1.2.5">4.1.2.5.</a> <a href="#clients-second-flight" id="clients-second-flight">Client&#8217;s Second Flight</a></h1>
+<p id="rfc.section.4.1.2.5.p.1">Finally, the client sends a Finished message which contains a MAC over the handshake transcript (except for the server&#8217;s Finished).  [[TODO: In the upcoming draft of TLS 1.3, the client&#8217;s Finished will likely include the server&#8217;s Finished.]] Once the client has transmitted the Finished, it can begin sending encrypted traffic to the server.</p>
+<p id="rfc.section.4.1.2.5.p.2">The server reads the client&#8217;s Finished message and verifies the MAC. If the MAC does not verify, the client terminates the handshake with an alert.</p>
+<h1 id="rfc.section.4.1.3"><a href="#rfc.section.4.1.3">4.1.3.</a> <a href="#hello-retry-request" id="hello-retry-request">Hello Retry Request [6.3.1.3]</a></h1>
+<p id="rfc.section.4.1.3.p.1">Because there are a small number of recommended groups, the ClientKeyShare will generally contain a key share for a group that the server supports.  However, it is possible that the client will not send such a key share, but there may be another group that the client and server jointly support.  In that case, the server MUST send a HelloRetryRequest indicating the desired group:</p>
+<pre>
+      struct {
+          ProtocolVersion server_version;
+          CipherSuite cipher_suite;
+          NamedGroup selected_group;
+          Extension extensions&lt;0..2^16-1&gt;;
+      } HelloRetryRequest;
+</pre>
+<p id="rfc.section.4.1.3.p.2">In response to the HelloRetryRequest the client re-sends its ClientHello but with the addition of the group indicated in &#8220;selected_group&#8221;.</p>
+<h1 id="rfc.section.4.1.4"><a href="#rfc.section.4.1.4">4.1.4.</a> <a href="#zero-rtt-exchange" id="zero-rtt-exchange">Zero-RTT Exchange</a></h1>
+<p id="rfc.section.4.1.4.p.1">TLS 1.3 allows the server to send its first application data message to the client immediately upon receiving the client&#8217;s first handshake message (which the client can send upon receiving the server&#8217;s SYN/ACK). However, in the basic handshake, the client is required to wait for the server&#8217;s first flight before it can send to the server. TLS 1.3 also includes a &#8220;Zero-RTT&#8221; feature which allows the client to send data on its first flight to the server.</p>
+<p id="rfc.section.4.1.4.p.2">In order to enable this feature, in an initial handshake the server sends a ServerConfiguration message which contains the server&#8217;s semi-static (EC)DH key which can be used for a future handshake:</p>
+<pre>
+      struct {
+          opaque configuration_id&lt;1..2^16-1&gt;;
+          uint32 expiration_date;
+          NamedGroup group;
+          opaque server_key&lt;1..2^16-1&gt;;
+          EarlyDataType early_data_type;
+          ConfigurationExtension extensions&lt;0..2^16-1&gt;;
+      } ServerConfiguration;
+</pre>
+<p id="rfc.section.4.1.4.p.3">The group and server_key fields contain the server&#8217;s (EC)DH key and the early_data_type field is used to indicate what data can be sent in zero-RTT. Because client authentication is forbidden in TCPINC-uses of TLS 1.3 (see <a href="#deprecated-features">Section 4.3</a>), the only valid value here is &#8220;early_data&#8221;, indicating that the client can send data in 0-RTT.</p>
+<p id="rfc.section.4.1.4.p.4">In a future connection, a client MAY send 0-RTT data only if the following three conditions obtain:</p>
+<p/>
+
+<ul>
+  <li>It has been specifically configured to do so (see <a href="#api-considerations">Section 6</a>).</li>
+  <li>A ServerConfiguration is available.</li>
+  <li>The server supplied a nonce in its SYN/ACK suboption [[TODO: Work out how to make this work with TFO if at all.]]</li>
+</ul>
+<p id="rfc.section.4.1.4.p.6">In this case, the client sends an EarlyDataIndication extension in its ClientHello and can start sending data immediately, as shown below.</p>
+<div id="rfc.figure.4"/>
+<div id="tls-0-rtt"/>
+<pre>
+       Client                                               Server
+
+       ClientHello
+         + ClientKeyShare
+         + EarlyDataIndication
+         + TCPENOTranscript
+       (EncryptedExtensions)
+       (Application Data)        --------&gt;
+                                                       ServerHello
+                                             + EarlyDataIndication
+                                                    ServerKeyShare
+                                             {EncryptedExtensions}
+                                            {ServerConfiguration*}
+                                                     {Certificate}
+                                               {CertificateVerify}
+                                 &lt;--------              {Finished}
+                                 &lt;--------      [Application Data]
+       {Finished}                --------&gt;
+
+       [Application Data]        &lt;-------&gt;      [Application Data]
+
+            () Indicates messages protected using keys
+               derived from the static secret.
+</pre>
+<p class="figure">Figure 4: Message flow for a zero round trip handshake</p>
+<p id="rfc.section.4.1.4.p.7">IMPORTANT NOTE: TLS 1.3 Zero-RTT does not provide PFS and therefore MUST only be used when explicitly configured.</p>
+<p id="rfc.section.4.1.4.p.8">Note: TLS 1.3 Zero-RTT data is inherently replayable (see the note in [I-D.ietf-tls-tls13] Section 6.2.2). However, because the client and server have already exchanged data in the <em>TCP</em> handshake, this data can be used to provide anti-replay for a 0-RTT mode TLS handshake via the TCPENOTranscript extension.</p>
+<h1 id="rfc.section.4.1.5"><a href="#rfc.section.4.1.5">4.1.5.</a> <a href="#key-schedule" id="key-schedule">Key Schedule</a></h1>
+<p id="rfc.section.4.1.5.p.1">TLS 1.3 derives its traffic keys from two input keying material values:</p>
+<p id="rfc.section.4.1.5.p.2">Ephemeral Secret (ES): A secret which is derived from ClientKeyShare and ServerKeyShare.</p>
+<p id="rfc.section.4.1.5.p.3">Static Secret (SS): A secret which which is derived from ClientKeyShare and either ServerKeyShare (in the 1-RTT case) or the public key in the ServerConfiguration (in the 0-RTT case).</p>
+<p id="rfc.section.4.1.5.p.4">The handshake is encrypted under keys derived from ES.  The ordinary traffic keys are derived from the combination of ES and SS. The 0-RTT traffic keys are derived solely from ES and therefore have limited forward security. All key derivation is done using the HKDF key-derivation algorithm <a href="#RFC5869">[RFC5869]</a>.</p>
+<h1 id="rfc.section.4.1.6"><a href="#rfc.section.4.1.6">4.1.6.</a> <a href="#record-protection" id="record-protection">Record Protection</a></h1>
+<p id="rfc.section.4.1.6.p.1">Once the TLS handshake has completed, all data is protected as a series of TLS Records.</p>
+<pre>
+       struct {
+           ContentType opaque_type = application_data(23); /* see fragment.type */
+           ProtocolVersion record_version = { 3, 1 };    /* TLS v1.x */
+           uint16 length;
+           aead-ciphered struct {
+              opaque content[TLSPlaintext.length];
+              ContentType type;
+              uint8 zeros[length_of_padding];
+           } fragment;
+       } TLSCiphertext;
+</pre>
+<p id="rfc.section.4.1.6.p.2">Each record is encrypted with an Authenticated Encryption with Additional Data (AEAD) cipher with the following parameters:</p>
+<p/>
+
+<ul>
+  <li>The AEAD nonce is constructed by generating a per-connection nonce mask of length max(8 bytes, N_MIN) for the AEAD algorithm (N_MIN is the minimum nonce size defined in <a href="#RFC5116">[RFC5116]</a> Section 4) and XORing it with the sequence number of the TLS record (left-padded with zeroes).</li>
+  <li>The additional data is the sequence number + the TLS version number.</li>
+</ul>
+<p id="rfc.section.4.1.6.p.4">The record data MAY BE padded with zeros to the right. Because the content type byte value is always non-zero, the padding is removed by removing bytes from the right until a non-zero byte is encountered.</p>
+<h1 id="rfc.section.4.2"><a href="#rfc.section.4.2">4.2.</a> <a href="#tls12-profile" id="tls12-profile">TLS 1.2 Profile</a></h1>
+<p id="rfc.section.4.2.p.1">Implementations MUST implement and require the TLS Extended Master Secret Extension <a href="#I-D.ietf-tls-session-hash">[I-D.ietf-tls-session-hash]</a> and MUST NOT negotiate versions of TLS prior to TLS 1.2. Implementations MUST NOT negotiate non-AEAD cipher suites and MUST use only PFS cipher suites with a key of at least 2048 bits (finite field) or 256 bites (elliptic curve).  TLS 1.2 implementations MUST NOT initiate renegotiation and MUST respond to renegotiation with a fatal &#8220;no_renegotiation&#8221; alert.</p>
+<h1 id="rfc.section.4.3"><a href="#rfc.section.4.3">4.3.</a> <a href="#deprecated-features" id="deprecated-features">Deprecated Features</a></h1>
+<p id="rfc.section.4.3.p.1">When TLS is used with TCPINC, a number of TLS features MUST NOT be used, including:</p>
+<p/>
+
+<ul>
+  <li>TLS certificate-based client authentication</li>
+  <li>Session resumption</li>
+</ul>
+<p id="rfc.section.4.3.p.3">These features have only minimal advantage in this context and interfere with offering a reduced profile.</p>
+<h1 id="rfc.section.4.4"><a href="#rfc.section.4.4">4.4.</a> <a href="#cryptographic-algorithms" id="cryptographic-algorithms">Cryptographic Algorithms</a></h1>
+<p id="rfc.section.4.4.p.1">Implementations of this specification MUST implement the following cipher suite:</p>
+<pre>
+    TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256 
+</pre>
+<p id="rfc.section.4.4.p.2">These cipher suites MUST support both digital signatures and key exchange with secp256r1 (NIST P-256) and SHOULD support key agrement with X25519 <a href="#I-D.irtf-cfrg-curves">[I-D.irtf-cfrg-curves]</a>.</p>
+<p id="rfc.section.4.4.p.3">Implementations of this specification SHOULD implement the following cipher suites:</p>
+<pre>
+    TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+    TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+</pre>
+<h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#transport-integrity" id="transport-integrity">Transport Integrity</a></h1>
+<p id="rfc.section.5.p.1">The basic operational mode defined by TCP-TLS protects only the application layer content, but not the TCP segment metadata.  Upon receiving a packet, implementations MUST first check the TCP checksum and discard corrupt packets without presenting them to TLS. If the TCP checksum passes but TLS integrity fails, the connection MUST be torn down.</p>
+<p id="rfc.section.5.p.2">Thus, TCP-TLS provides automatic security for the content, but not protection against DoS-style attacks.  For instance, attackers will be able to inject RST packets, bogus application segments, etc., regardless of whether TLS authentication is used.  Because the application data is TLS protected, this will not result in the application receiving bogus data, but it will constitute a DoS on the connection.</p>
+<p id="rfc.section.5.p.3">This attack could be countered by using TCP-TLS in combination with TCP-AO <a href="#RFC5925">[RFC5925]</a>, using Application-Layer Protocol Negotiation (ALPN) <a href="#RFC7301">[RFC7301]</a> to negotiate the use of AO. [[OPEN ISSUE: Is this something we want? Maybe in a separate specification.]]</p>
+<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#api-considerations" id="api-considerations">API Considerations</a></h1>
+<p id="rfc.section.6.p.1">Needed here:</p>
+<p/>
+
+<ul>
+  <li>How to configure 0-RTT and send 0-RTT data (some sort of sockopt).</li>
+  <li>When is the session-id available (post-connect() completion).</li>
+  <li>How to indicate that the certificate should be validated.</li>
+</ul>
+<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#implementation-considerations" id="implementation-considerations">Implementation Considerations</a></h1>
+<p id="rfc.section.7.p.1">There are two primary implementation options for TCP-TLS:</p>
+<p/>
+
+<ul>
+  <li>Implement all of TCP-TLS in the operating system kernel.</li>
+  <li>Implement just the TCP-TLS negotiation option in the operating system kernel with an interface to tell the application that TCP-TLS has been negotiated and therefore that the application must negotiate TLS.</li>
+</ul>
+<p id="rfc.section.7.p.3">The former option obviously achieves easier deployment for applications, which don&#8217;t have to do anything, but is more effort for kernel developers and requires a wider interface to the kernel to configure the TLS stack. The latter option is inherently more flexible but does not provide as immediate transparent deployment. It is also possible for systems to offer both options.</p>
+<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#natfirewall-considerations" id="natfirewall-considerations">NAT/Firewall considerations</a></h1>
+<p id="rfc.section.8.p.1">If use of TLS is negotiated, the data sent over TCP simply is TLS data in compliance with <a href="#RFC5246">[RFC5246]</a>. Thus it is extremely likely to pass through NATs, firewalls, etc. The only kind of middlebox that is likely to cause a problem is one which does protocol enforcement that blocks TLS on arbitrary (non-443) ports but <em>also</em> passes unknown TCP options. Although no doubt such devices do exist, because this is a common scenario, a client machine should be able to probe to determine if it is behind such a device relatively readily.</p>
+<h1 id="rfc.section.9"><a href="#rfc.section.9">9.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
+<p id="rfc.section.9.p.1">IANA [shall register/has registered] the TCP-ENO suboption XX for TCP-TLS.</p>
+<p id="rfc.section.9.p.2">IANA [shall register/has registered] the ALPN code point &#8220;tcpao&#8221; to indicate the use of TCP-TLS with TCP-AO.</p>
+<h1 id="rfc.section.10"><a href="#rfc.section.10">10.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
+<p id="rfc.section.10.p.1">The mechanisms in this document are inherently vulnerable to active attack because an attacker can remove the TCP-TLS option, thus downgrading you to ordinary TCP. Even when TCP-AO is used, all that is being provided is continuity of authentication from the initial handshake. If some sort of external authentication mechanism was provided or certificates are used, then you might get some protection against active attack.</p>
+<p id="rfc.section.10.p.2">Once the TCP-TLS option has been negotiated, then the connection is resistant to active data injection attacks. If TCP-AO is not used, then injected packets appear as bogus data at the TLS layer and will result in MAC errors followed by a fatal alert. The result is that while data integrity is provided, the connection is not resistant to DoS attacks intended to terminate it.</p>
+<p id="rfc.section.10.p.3">If TCP-AO is used, then any bogus packets injected by an attacker will be rejected by the TCP-AO integrity check and therefore will never reach the TLS layer. Thus, in this case, the connection is also resistant to DoS attacks, provided that endpoints require integrity protection for RST packets. If endpoints accept unauthenticated RST, then no DoS protection is provided.</p>
+<h1 id="rfc.references"><a href="#rfc.references">11.</a> References</h1>
+<h1 id="rfc.references.1"><a href="#rfc.references.1">11.1.</a> Normative References</h1>
+<table>
+  <tbody>
+    <tr>
+      <td class="reference">
+        <b id="I-D.bittau-tcpinc-tcpeno">[I-D.bittau-tcpinc-tcpeno]</b>
+      </td>
+      <td class="top"><a>Bittau, A.</a>, <a>Boneh, D.</a>, <a>Giffin, D.</a>, <a>Handley, M.</a>, <a>Mazieres, D.</a> and <a>E. Smith</a>, "<a href="http://tools.ietf.org/html/draft-bittau-tcpinc-tcpeno-02">TCP-ENO: Encryption Negotiation Option</a>", Internet-Draft draft-bittau-tcpinc-tcpeno-02, September 2015.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="I-D.ietf-tls-applayerprotoneg">[I-D.ietf-tls-applayerprotoneg]</b>
+      </td>
+      <td class="top"><a>Friedl, S.</a>, <a>Popov, A.</a>, <a>Langley, A.</a> and <a>S. Emile</a>, "<a href="http://tools.ietf.org/html/draft-ietf-tls-applayerprotoneg-05">Transport Layer Security (TLS) Application Layer Protocol Negotiation Extension</a>", Internet-Draft draft-ietf-tls-applayerprotoneg-05, March 2014.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="I-D.ietf-tls-chacha20-poly1305">[I-D.ietf-tls-chacha20-poly1305]</b>
+      </td>
+      <td class="top"><a>Langley, A.</a>, <a>Chang, W.</a>, <a>Mavrogiannopoulos, N.</a>, <a>Strombergson, J.</a> and <a>S. Josefsson</a>, "<a href="http://tools.ietf.org/html/draft-ietf-tls-chacha20-poly1305-00">The ChaCha20-Poly1305 AEAD Cipher for Transport Layer Security</a>", Internet-Draft draft-ietf-tls-chacha20-poly1305-00, June 2015.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="I-D.ietf-tls-session-hash">[I-D.ietf-tls-session-hash]</b>
+      </td>
+      <td class="top"><a>Bhargavan, K.</a>, <a>Delignat-Lavaud, A.</a>, <a>Pironti, A.</a>, <a>Langley, A.</a> and <a>M. Ray</a>, "<a href="http://tools.ietf.org/html/draft-ietf-tls-session-hash-06">Transport Layer Security (TLS) Session Hash and Extended Master Secret Extension</a>", Internet-Draft draft-ietf-tls-session-hash-06, July 2015.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="I-D.ietf-tls-tls13">[I-D.ietf-tls-tls13]</b>
+      </td>
+      <td class="top"><a>Rescorla, E.</a>, "<a href="http://tools.ietf.org/html/draft-ietf-tls-tls13-10">The Transport Layer Security (TLS) Protocol Version 1.3</a>", Internet-Draft draft-ietf-tls-tls13-10, October 2015.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="I-D.irtf-cfrg-curves">[I-D.irtf-cfrg-curves]</b>
+      </td>
+      <td class="top"><a>Langley, A.</a> and <a>M. Hamburg</a>, "<a href="http://tools.ietf.org/html/draft-irtf-cfrg-curves-11">Elliptic Curves for Security</a>", Internet-Draft draft-irtf-cfrg-curves-11, October 2015.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC2119">[RFC2119]</b>
+      </td>
+      <td class="top"><a>Bradner, S.</a>, "<a href="http://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>", BCP 14, RFC 2119, DOI 10.17487/RFC2119, March 1997.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC5116">[RFC5116]</b>
+      </td>
+      <td class="top"><a>McGrew, D.</a>, "<a href="http://tools.ietf.org/html/rfc5116">An Interface and Algorithms for Authenticated Encryption</a>", RFC 5116, DOI 10.17487/RFC5116, January 2008.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC5246">[RFC5246]</b>
+      </td>
+      <td class="top"><a>Dierks, T.</a> and <a>E. Rescorla</a>, "<a href="http://tools.ietf.org/html/rfc5246">The Transport Layer Security (TLS) Protocol Version 1.2</a>", RFC 5246, DOI 10.17487/RFC5246, August 2008.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC5705">[RFC5705]</b>
+      </td>
+      <td class="top"><a>Rescorla, E.</a>, "<a href="http://tools.ietf.org/html/rfc5705">Keying Material Exporters for Transport Layer Security (TLS)</a>", RFC 5705, DOI 10.17487/RFC5705, March 2010.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC5869">[RFC5869]</b>
+      </td>
+      <td class="top"><a>Krawczyk, H.</a> and <a>P. Eronen</a>, "<a href="http://tools.ietf.org/html/rfc5869">HMAC-based Extract-and-Expand Key Derivation Function (HKDF)</a>", RFC 5869, DOI 10.17487/RFC5869, May 2010.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC5925">[RFC5925]</b>
+      </td>
+      <td class="top"><a>Touch, J.</a>, <a>Mankin, A.</a> and <a>R. Bonica</a>, "<a href="http://tools.ietf.org/html/rfc5925">The TCP Authentication Option</a>", RFC 5925, DOI 10.17487/RFC5925, June 2010.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC7250">[RFC7250]</b>
+      </td>
+      <td class="top"><a>Wouters, P.</a>, <a>Tschofenig, H.</a>, <a>Gilmore, J.</a>, <a>Weiler, S.</a> and <a>T. Kivinen</a>, "<a href="http://tools.ietf.org/html/rfc7250">Using Raw Public Keys in Transport Layer Security (TLS) and Datagram Transport Layer Security (DTLS)</a>", RFC 7250, DOI 10.17487/RFC7250, June 2014.</td>
+    </tr>
+  </tbody>
+</table>
+<h1 id="rfc.references.2"><a href="#rfc.references.2">11.2.</a> Informative References</h1>
+<table>
+  <tbody>
+    <tr>
+      <td class="reference">
+        <b id="I-D.bittau-tcp-crypt">[I-D.bittau-tcp-crypt]</b>
+      </td>
+      <td class="top"><a>Bittau, A.</a>, <a>Boneh, D.</a>, <a>Hamburg, M.</a>, <a>Handley, M.</a>, <a>Mazieres, D.</a> and <a>Q. Slack</a>, "<a href="http://tools.ietf.org/html/draft-bittau-tcp-crypt-04">Cryptographic protection of TCP Streams (tcpcrypt)</a>", Internet-Draft draft-bittau-tcp-crypt-04, February 2014.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="I-D.ietf-tls-falsestart">[I-D.ietf-tls-falsestart]</b>
+      </td>
+      <td class="top"><a>Langley, A.</a>, <a>Modadugu, N.</a> and <a>B. Moeller</a>, "<a href="http://tools.ietf.org/html/draft-ietf-tls-falsestart-00">Transport Layer Security (TLS) False Start</a>", Internet-Draft draft-ietf-tls-falsestart-00, May 2015.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC5929">[RFC5929]</b>
+      </td>
+      <td class="top"><a>Altman, J.</a>, <a>Williams, N.</a> and <a>L. Zhu</a>, "<a href="http://tools.ietf.org/html/rfc5929">Channel Bindings for TLS</a>", RFC 5929, DOI 10.17487/RFC5929, July 2010.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC6919">[RFC6919]</b>
+      </td>
+      <td class="top"><a>Barnes, R.</a>, <a>Kent, S.</a> and <a>E. Rescorla</a>, "<a href="http://tools.ietf.org/html/rfc6919">Further Key Words for Use in RFCs to Indicate Requirement Levels</a>", RFC 6919, DOI 10.17487/RFC6919, April 2013.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="RFC7301">[RFC7301]</b>
+      </td>
+      <td class="top"><a>Friedl, S.</a>, <a>Popov, A.</a>, <a>Langley, A.</a> and <a>E. Stephan</a>, "<a href="http://tools.ietf.org/html/rfc7301">Transport Layer Security (TLS) Application-Layer Protocol Negotiation Extension</a>", RFC 7301, DOI 10.17487/RFC7301, July 2014.</td>
+    </tr>
+  </tbody>
+</table>
+<h1 id="rfc.authors">
+  <a href="#rfc.authors">Author's Address</a>
+</h1>
+<div class="avoidbreak">
+  <address class="vcard">
+	<span class="vcardline">
+	  <span class="fn">Eric Rescorla</span> 
+	  <span class="n hidden">
+		<span class="family-name">Rescorla</span>
+	  </span>
+	</span>
+	<span class="org vcardline">Mozilla</span>
+	<span class="adr">
+	  
+	  <span class="vcardline">
+		<span class="locality"></span> 
+		<span class="region"></span>
+		<span class="code"></span>
+	  </span>
+	  <span class="country-name vcardline"></span>
+	</span>
+	<span class="vcardline">EMail: <a href="mailto:ekr@rtfm.com">ekr@rtfm.com</a></span>
+
+  </address>
+</div>
+
+</body>
+</html>
