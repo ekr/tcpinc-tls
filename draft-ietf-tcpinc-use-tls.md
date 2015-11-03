@@ -1,7 +1,7 @@
 ---
-title: TCP Use TLS Option
-abbrev: TCP/TLS Opt
-docname: draft-rescorla-tcpinc-tls-option-latest
+title: Using TLS to Protect TCP Streams
+abbrev: TCP-use-TLS
+docname: draft-ietf-tcpinc-use-tls-latest
 date: 2015
 category: std
 
